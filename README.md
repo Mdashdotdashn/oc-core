@@ -2,7 +2,17 @@
 
 Hardware Abstraction Framework for Ornament & Crime (Teensy 3.6).
 
-Inspired by the [Daisy Versio/Legio](https://github.com/electro-smith/DaisyExamples) developer experience: write your algorithm once, plug it into the platform via two methods.
+Inspired by the Daisy Versio/Legio developer experience: write your algorithm once, plug it into the platform via two methods. The `audio_callback + main_loop` pattern is taken directly from the Daisy examples — see the reference implementations in `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` and `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp`.
+
+## Local Workspace Paths
+
+| Role | Path |
+|------|------|
+| **This framework** | `~/devtree/marc-nostromo/oc-core/` |
+| **ArticCircle firmware** (HAL source material) | `~/devtree/marc-nostromo/ArticCircle/` |
+| **Daisy examples** (UX reference) | `~/devtree/sdk/DaisyExamples/` |
+| **Daisy Legio example** | `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` |
+| **Daisy Versio example** | `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp` |
 
 ---
 
@@ -152,21 +162,24 @@ The audio ISR fires at 10 kHz (100 µs). It calls `isr_cycle()` then `audio_call
 - [x] Isolated PlatformIO build per example (no ArticCircle cross-contamination)
 
 ### Phase 2 — Teensy 3.6 HAL (current)
-Wire the stubs to real hardware. All source material lives in `../ArticCircle/`.
+Wire the stubs to real hardware. All source material lives in `~/devtree/marc-nostromo/ArticCircle/`.
 
-| File | Status | Source to extract from |
-|------|--------|------------------------|
-| `adc_teensy36.cpp` | ✅ done | `OC_ADC.cpp` |
-| `dac_teensy36.cpp` | ⚠ `flush()` stub | `OC_DAC.cpp` — `set8565_CH*` + `src/drivers/` |
-| `gpio_teensy36.cpp` | ⚠ pin numbers | `OC_gpio.h` — `TR1`–`TR4` defines |
-| `timer_teensy36.cpp` | ✅ done | `ArticCircle.ino` — `IntervalTimer` setup |
+| File | Status | ArticCircle source to extract from |
+|------|--------|------------------------------------|
+| `adc_teensy36.cpp` | ✅ done | `ArticCircle/OC_ADC.cpp` |
+| `dac_teensy36.cpp` | ⚠ `flush()` stub | `ArticCircle/OC_DAC.cpp` — `set8565_CH*` + `ArticCircle/src/drivers/` |
+| `gpio_teensy36.cpp` | ⚠ pin numbers | `ArticCircle/OC_gpio.h` — `TR1`–`TR4` defines |
+| `timer_teensy36.cpp` | ✅ done | `ArticCircle/ArticCircle.ino` — `IntervalTimer` setup |
 | `storage_teensy36.cpp` | ✅ done | standard EEPROM |
 
 **Next actions:**
-1. Copy pin defines from `../ArticCircle/OC_gpio.h` into `gpio_teensy36.h`
-2. Wire `dac_teensy36.cpp::flush()` to the SPI routines in `../ArticCircle/src/drivers/`
-   — either symlink the driver or copy it into `src/platforms/teensy36/drivers/`
-3. Attempt first `pio run` on the LFO example
+1. Open `~/devtree/marc-nostromo/ArticCircle/OC_gpio.h` — copy `TR1`–`TR4` pin defines into `src/platforms/teensy36/gpio_teensy36.h` `kPins[]`
+2. Open `~/devtree/marc-nostromo/ArticCircle/OC_DAC.cpp` and `ArticCircle/src/drivers/` — wire `set8565_CH*` calls into `dac_teensy36.cpp::flush()`; copy or reference the SPI driver into `src/platforms/teensy36/drivers/`
+3. Run `cd examples/lfo && pio run` and fix any include/linker errors
+
+**Daisy UX reference** for how the callback wires into main:
+- `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` — knob + gate + audio callback
+- `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp` — minimal effect callback
 
 ### Phase 3 — Integration Test
 - Build `examples/lfo` without errors
@@ -202,7 +215,7 @@ Wire the stubs to real hardware. All source material lives in `../ArticCircle/`.
 
 ## Isolation from ArticCircle
 
-oc-core is a **sibling repository** (`../ArticCircle` / `../oc-core`).
+oc-core is a **sibling repository** at `~/devtree/marc-nostromo/oc-core`, next to `~/devtree/marc-nostromo/ArticCircle`.
 
 - Separate git history — commits never cross
 - All headers are under `include/oc/` — no name collision with `OC_*.h`
