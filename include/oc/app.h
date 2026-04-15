@@ -53,6 +53,16 @@ struct AudioIn {
     /// Front-panel push-buttons. [0] = UP (pin 5), [1] = DOWN (pin 4).
     /// Poll from audio_callback(); cache values in member vars if needed in main_loop().
     std::array<ButtonState, 2> buttons;
+
+    /// Rotary encoders. [0] = LEFT, [1] = RIGHT.
+    /// delta: +1 CW, -1 CCW, 0 no movement this cycle.
+    struct EncoderState {
+        int8_t delta;
+        bool   click_pressed;
+        bool   click_just_pressed;
+        bool   click_just_released;
+    };
+    std::array<EncoderState, 2> encoders;
 };
 
 /// Output values to drive from one audio ISR cycle.
