@@ -1,0 +1,82 @@
+#pragma once
+#include <cstdint>
+#include <array>
+
+/// oc-core: User Application Interface
+///
+/// This is the only header a user algorithm needs to include.
+/// It defines AudioIn (inputs from hardware each ISR cycle),
+/// AudioOut (outputs the user writes to each cycle), and the
+/// Application base class with the two-method contract:
+///
+///   audio_callback(in, out)   — real-time, called every 100µs
+///   main_loop()               — background, called from while(1)
+///
+/// Usage:
+///   #include "oc/app.h"
+///
+///   class MyAlgorithm : public oc::Application {
+///   public:
+///       void init() override { ... }
+///       void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override { ... }
+///       void main_loop() override { ... }
+///   };
+
+namespace oc {
+
+/// Hardware input snapshot for one audio ISR cycle.
+struct AudioIn {
+    /// Calibrated CV values from ADC (signed, scaled to pitch CV units).
+    /// Use these for pitch/frequency calculations.
+    std::array<int32_t, 4> cv;
+
+    /// Raw 12-bit ADC readings (0–4095) before calibration.
+    /// Use these if you need the raw voltage ratio.
+    std::array<uint32_t, 4> cv_raw;
+
+    /// Current logic level of each gate/trigger input (true = high).
+    std::array<bool, 4> gate;
+
+    /// Bitmask of gate channels that had a rising edge this cycle.
+    /// Bit N is set when gate[N] just went high.
+    /// Example: if (in.gate_edges & (1 << 2)) { /* gate 3 triggered */ }
+    uint32_t gate_edges;
+};
+
+/// Output values to drive from one audio ISR cycle.
+struct AudioOut {
+    /// DAC output values for each channel (0–65535, 16-bit).
+    /// Maps to 0–10V on the O&C hardware (after calibration).
+    std::array<uint16_t, 4> cv;
+};
+
+/// Base class for user algorithms.
+///
+/// Subclass this and implement audio_callback(). Optionally override init()
+/// and main_loop(). Everything stays in your class — no global state needed.
+class Application {
+public:
+    virtual ~Application() = default;
+
+    /// Called once from main() before audio starts.
+    /// Initialize oscillators, load presets, set defaults, etc.
+    virtual void init() {}
+
+    /// Called every 100µs from the hardware ISR (~10 kHz).
+    ///
+    /// Read inputs from `in`, write outputs to `out`.
+    /// MUST be deterministic and complete well under 100µs.
+    /// No heap allocation, no blocking I/O, no long loops.
+    virtual void audio_callback(const AudioIn& in, AudioOut& out) = 0;
+
+    /// Called from the main() while(1) loop as fast as possible.
+    ///
+    /// Safe for: parameter updates, UI, display, file I/O, Serial.
+    /// Not timing-critical — will be preempted by the ISR timer.
+    virtual void main_loop() {}
+
+    /// Called when the system is shutting down cleanly.
+    virtual void shutdown() {}
+};
+
+} // namespace oc

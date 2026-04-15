@@ -1,0 +1,21 @@
+# oc-core — Ornament & Crime Hardware Abstraction Framework
+# Build artifacts from PlatformIO and compilers
+.pio/
+.pioenvs/
+build/
+*.o
+*.a
+*.elf
+*.hex
+*.bin
+*.map
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store

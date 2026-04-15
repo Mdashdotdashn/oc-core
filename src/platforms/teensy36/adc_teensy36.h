@@ -1,0 +1,36 @@
+#pragma once
+#include "oc/hal/adc.h"
+#include <cstdint>
+#include <array>
+
+/// Teensy 3.6 ADC implementation.
+/// Wraps the Teensy ADC library with round-robin channel scanning,
+/// simple exponential smoothing, and calibration offset support.
+/// Reference implementation adapted from ArticCircle/OC_ADC.cpp.
+
+namespace oc::platform::teensy36 {
+
+class ADCImpl : public hal::ADCInterface {
+public:
+    ADCImpl();
+
+    void init();
+
+    void     scan()                          override;
+    uint32_t read_raw(uint8_t ch)      const override;
+    uint32_t get_smoothed(uint8_t ch)  const override;
+    int32_t  get_calibrated(uint8_t ch) const override;
+
+    void set_calibration_offset(uint8_t channel, uint16_t offset);
+
+private:
+    static constexpr int   kSmoothing = 4;  ///< Exponential moving average factor (2^N)
+    static constexpr uint8_t kPins[4] = {A0, A1, A2, A3};
+
+    uint8_t  current_channel_ = 0;
+    std::array<uint32_t, 4> raw_;
+    std::array<uint32_t, 4> smoothed_;
+    std::array<uint16_t, 4> offsets_;
+};
+
+} // namespace oc::platform::teensy36
