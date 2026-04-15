@@ -24,6 +24,14 @@
 
 namespace oc {
 
+/// Debounced state of a single button for one ISR cycle.
+/// just_pressed / just_released fire for exactly one cycle on edge transitions.
+struct ButtonState {
+    bool pressed;       ///< True while held (all recent samples confirm pressed)
+    bool just_pressed;  ///< True for exactly one cycle on press edge
+    bool just_released; ///< True for exactly one cycle on release edge
+};
+
 /// Hardware input snapshot for one audio ISR cycle.
 struct AudioIn {
     /// Calibrated CV values from ADC (signed, scaled to pitch CV units).
@@ -41,6 +49,10 @@ struct AudioIn {
     /// Bit N is set when gate[N] just went high.
     /// Example: if (in.gate_edges & (1 << 2)) { /* gate 3 triggered */ }
     uint32_t gate_edges;
+
+    /// Front-panel push-buttons. [0] = UP (pin 5), [1] = DOWN (pin 4).
+    /// Poll from audio_callback(); cache values in member vars if needed in main_loop().
+    std::array<ButtonState, 2> buttons;
 };
 
 /// Output values to drive from one audio ISR cycle.

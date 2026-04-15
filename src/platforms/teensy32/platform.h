@@ -1,10 +1,12 @@
 #pragma once
 #include "adc_teensy32.h"
+#include "buttons_teensy32.h"
 #include "dac_teensy32.h"
 #include "gpio_teensy32.h"
 #include "timer_teensy32.h"
 #include "storage_teensy32.h"
 #include "oc/hal/adc.h"
+#include "oc/hal/buttons.h"
 #include "oc/hal/dac.h"
 #include "oc/hal/gpio.h"
 #include "oc/hal/timer.h"
@@ -31,11 +33,13 @@ public:
         adc_.init();
         dac_.init();
         gpio_.init();
+        buttons_.init();
     }
 
     hal::ADCInterface*     adc()     { return &adc_;     }
     hal::DACInterface*     dac()     { return &dac_;     }
     hal::GPIOInterface*    gpio()    { return &gpio_;    }
+    hal::ButtonsInterface* buttons() { return &buttons_; }
     hal::TimerInterface*   timer()   { return &timer_;   }
     hal::StorageInterface* storage() { return &storage_; }
 
@@ -43,6 +47,7 @@ private:
     ADCImpl     adc_;
     DACImpl     dac_;
     GPIOImpl    gpio_;
+    ButtonsImpl buttons_;
     TimerImpl   timer_;
     StorageImpl storage_;
 };
