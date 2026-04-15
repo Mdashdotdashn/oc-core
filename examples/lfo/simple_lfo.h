@@ -15,9 +15,14 @@ class SimpleLFO : public oc::Application {
 public:
     void init() override {
         phase_ = 0;
-        // Base increment: tune to taste.
-        // At 10kHz ISR rate, 100 (~0.001 of full cycle per tick) ≈ 10Hz LFO.
-        base_increment_ = 100;
+        // Phase accumulator is uint32_t (full scale = 2^32).
+        // ISR rate = 10 kHz. Increment for frequency f:
+        //   increment = f * 2^32 / 10000
+        // Examples:
+        //   0.1 Hz →    42,950
+        //   1.0 Hz →   429,497
+        //  10.0 Hz → 4,294,967
+        base_increment_ = 429497;  // ~1 Hz default
     }
 
     void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {

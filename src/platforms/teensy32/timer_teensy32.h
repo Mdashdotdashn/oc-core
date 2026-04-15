@@ -4,7 +4,7 @@
 /// Teensy 3.6 Timer implementation.
 /// Wraps Teensy's IntervalTimer to register the audio ISR callback.
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 class TimerImpl : public hal::TimerInterface {
 public:
@@ -12,4 +12,4 @@ public:
     void stop() override;
 };
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

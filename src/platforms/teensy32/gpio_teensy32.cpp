@@ -1,7 +1,7 @@
-#include "gpio_teensy36.h"
+#include "gpio_teensy32.h"
 #include <Arduino.h>   // digitalReadFast
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 GPIOImpl::GPIOImpl() {
     last_state_.fill(false);
@@ -10,7 +10,7 @@ GPIOImpl::GPIOImpl() {
 
 void GPIOImpl::init() {
     for (int i = 0; i < 4; ++i) {
-        pinMode(kPins[i], INPUT);
+        pinMode(kPins[i], INPUT_PULLUP);  // TR1-TR4 are active-low gate inputs
     }
 }
 
@@ -35,4 +35,4 @@ uint32_t GPIOImpl::get_edge_mask() const {
     return edge_mask_;
 }
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

@@ -7,7 +7,7 @@
 /// Drives the MCP48x2/AD5668-style DAC via the hardware SPI bus,
 /// matching the protocol used by the existing OC_DAC.cpp driver.
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 class DACImpl : public hal::DACInterface {
 public:
@@ -24,4 +24,4 @@ private:
     std::array<uint16_t, 4> staged_;
 };
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

@@ -1,7 +1,7 @@
-#include "storage_teensy36.h"
+#include "storage_teensy32.h"
 #include <EEPROM.h>
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 void StorageImpl::read(uint32_t address, void* data, uint32_t size) {
     uint8_t* p = static_cast<uint8_t*>(data);
@@ -21,4 +21,4 @@ uint32_t StorageImpl::capacity() const {
     return EEPROM.length();
 }
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

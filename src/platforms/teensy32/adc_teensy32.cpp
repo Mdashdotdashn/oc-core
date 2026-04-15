@@ -1,7 +1,7 @@
-#include "adc_teensy36.h"
+#include "adc_teensy32.h"
 #include <ADC.h>   // Teensy ADC library
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 namespace {
     ADC adc_obj_;
@@ -57,4 +57,4 @@ void ADCImpl::set_calibration_offset(uint8_t channel, uint16_t offset) {
     offsets_[channel] = offset;
 }
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

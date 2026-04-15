@@ -1,6 +1,6 @@
 # oc-core
 
-Hardware Abstraction Framework for Ornament & Crime (Teensy 3.6).
+Hardware Abstraction Framework for Ornament & Crime (Teensy 3.2).
 
 Inspired by the Daisy Versio/Legio developer experience: write your algorithm once, plug it into the platform via two methods. The `audio_callback + main_loop` pattern is taken directly from the Daisy examples — see the reference implementations in `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` and `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp`.
 
@@ -38,10 +38,10 @@ public:
 
 ```cpp
 // main.cpp — boilerplate, change only the algorithm type
-#include "platforms/teensy36/all.h"
+#include "platforms/teensy32/all.h"
 #include "my_algorithm.h"
 
-oc::platform::teensy36::HardwarePlatform hw;
+oc::platform::teensy32::HardwarePlatform hw;
 oc::core::PeriodicCore                   audio;
 MyAlgorithm                              app;
 
@@ -98,14 +98,14 @@ oc-core/
 │   ├── core/
 │   │   └── periodic_core.cpp
 │   └── platforms/
-│       └── teensy36/
+│       └── teensy32/
 │           ├── platform.h         # HardwarePlatform — owns all device instances
 │           ├── all.h              # Convenience single-include for main.cpp
-│           ├── adc_teensy36.h/cpp
-│           ├── dac_teensy36.h/cpp  ⚠ SPI driver stub — see Phase 2
-│           ├── gpio_teensy36.h/cpp ⚠ Pin numbers stub — see Phase 2
-│           ├── timer_teensy36.h/cpp
-│           └── storage_teensy36.h/cpp
+│           ├── adc_teensy32.h/cpp
+│           ├── dac_teensy32.h/cpp  ⚠ SPI driver stub — see Phase 2
+│           ├── gpio_teensy32.h/cpp ⚠ Pin numbers stub — see Phase 2
+│           ├── timer_teensy32.h/cpp
+│           └── storage_teensy32.h/cpp
 │
 ├── examples/
 │   ├── lfo/                       # Triangle LFO — complete end-to-end example
@@ -141,7 +141,7 @@ oc-core/
    ADCInterface  DACInterface  GPIOInterface   ← pure abstract HAL
         │          │           │
 ┌───────▼──────────▼───────────▼──────────────────────────┐
-│  Teensy 3.6 Platform  (src/platforms/teensy36/)         │
+│  Teensy 3.2 Platform  (src/platforms/teensy32/)         │
 │  ADCImpl / DACImpl / GPIOImpl / TimerImpl / StorageImpl │
 │  ≈ 1200 lines extracted from ArticCircle               │
 └─────────────────────────────────────────────────────────┘
@@ -157,35 +157,36 @@ The audio ISR fires at 10 kHz (100 µs). It calls `isr_cycle()` then `audio_call
 - [x] HAL abstract interfaces: `adc.h`, `dac.h`, `gpio.h`, `timer.h`, `storage.h`
 - [x] `oc::Application` base class with `audio_callback` + `main_loop`
 - [x] `oc::core::PeriodicCore` ISR coordinator
-- [x] Teensy 3.6 platform stubs for all 5 devices
+- [x] Teensy 3.2 platform stubs for all 5 devices
 - [x] `examples/lfo` — complete end-to-end template
 - [x] Isolated PlatformIO build per example (no ArticCircle cross-contamination)
 
-### Phase 2 — Teensy 3.6 HAL (current)
+### Phase 2 — Teensy 3.2 HAL ✅ (done)
 Wire the stubs to real hardware. All source material lives in `~/devtree/marc-nostromo/ArticCircle/`.
 
 | File | Status | ArticCircle source to extract from |
 |------|--------|------------------------------------|
-| `adc_teensy36.cpp` | ✅ done | `ArticCircle/OC_ADC.cpp` |
-| `dac_teensy36.cpp` | ⚠ `flush()` stub | `ArticCircle/OC_DAC.cpp` — `set8565_CH*` + `ArticCircle/src/drivers/` |
-| `gpio_teensy36.cpp` | ⚠ pin numbers | `ArticCircle/OC_gpio.h` — `TR1`–`TR4` defines |
-| `timer_teensy36.cpp` | ✅ done | `ArticCircle/ArticCircle.ino` — `IntervalTimer` setup |
-| `storage_teensy36.cpp` | ✅ done | standard EEPROM |
+| `adc_teensy32.cpp` | ✅ done | `ArticCircle/OC_ADC.cpp` |
+| `dac_teensy32.cpp` | ✅ done | `ArticCircle/OC_DAC.cpp` — `set8565_CH*` via `util_SPIFIFO.h` |
+| `gpio_teensy32.cpp` | ✅ done | `ArticCircle/OC_gpio.h` — TR1–TR4 = pins 0–3, INPUT_PULLUP |
+| `timer_teensy32.cpp` | ✅ done | `ArticCircle/ArticCircle.ino` — `IntervalTimer` setup |
+| `storage_teensy32.cpp` | ✅ done | standard EEPROM |
 
 **Next actions:**
-1. Open `~/devtree/marc-nostromo/ArticCircle/OC_gpio.h` — copy `TR1`–`TR4` pin defines into `src/platforms/teensy36/gpio_teensy36.h` `kPins[]`
-2. Open `~/devtree/marc-nostromo/ArticCircle/OC_DAC.cpp` and `ArticCircle/src/drivers/` — wire `set8565_CH*` calls into `dac_teensy36.cpp::flush()`; copy or reference the SPI driver into `src/platforms/teensy36/drivers/`
+1. Open `~/devtree/marc-nostromo/ArticCircle/OC_gpio.h` — copy `TR1`–`TR4` pin defines into `src/platforms/teensy32/gpio_teensy32.h` `kPins[]`
+2. Open `~/devtree/marc-nostromo/ArticCircle/OC_DAC.cpp` and `ArticCircle/src/drivers/` — wire `set8565_CH*` calls into `dac_teensy32.cpp::flush()`; copy or reference the SPI driver into `src/platforms/teensy32/drivers/`
 3. Run `cd examples/lfo && pio run` and fix any include/linker errors
 
 **Daisy UX reference** for how the callback wires into main:
 - `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` — knob + gate + audio callback
 - `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp` — minimal effect callback
 
-### Phase 3 — Integration Test
-- Build `examples/lfo` without errors
-- Flash to hardware; verify triangle wave appears on all 4 outputs
-- Measure ISR execution time with a spare GPIO toggled around `audio_callback()`
-  (target: < 50 µs out of the 100 µs budget)
+### Phase 3 — Integration Test (in progress)
+- [x] Build `examples/lfo` — clean build, 13.6 kB Flash / 4.7 kB RAM (Teensy 3.2: 256 kB Flash, 64 kB RAM)
+- [x] ISR timing pin added: `digitalWriteFast(24, HIGH/LOW)` around `audio_callback()`
+- [ ] Flash to hardware — run `make flash` (or `pio run -t upload -d examples/lfo`); board must be in bootloader mode (press reset button)
+- [ ] Verify triangle wave on all 4 CV outputs
+- [ ] Measure ISR pulse width on pin 24 (scope/logic analyser); target < 50 µs
 
 ### Phase 4 — Additional Examples
 | Example | Demonstrates |

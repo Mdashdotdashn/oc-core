@@ -7,7 +7,7 @@
 /// Reads 4 gate inputs and detects rising edges.
 /// Pin assignments match the existing OC_digital_inputs.h (TR1–TR4).
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 class GPIOImpl : public hal::GPIOInterface {
 public:
@@ -20,12 +20,12 @@ public:
     uint32_t get_edge_mask()         const  override;
 
 private:
-    // TR1–TR4 pin numbers (must match OC_gpio.h definitions)
-    static constexpr uint8_t kPins[4] = {0, 1, 2, 3};  // TODO: verify actual pin numbers
+    // TR1-TR4 gate input pins (verified against ArticCircle/OC_gpio.h)
+    static constexpr uint8_t kPins[4] = {0, 1, 2, 3};  // TR1=0, TR2=1, TR3=2, TR4=3
 
     std::array<bool, 4> last_state_;
     std::array<bool, 4> current_state_;
     uint32_t            edge_mask_ = 0;
 };
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

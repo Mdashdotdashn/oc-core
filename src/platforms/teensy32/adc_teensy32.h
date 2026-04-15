@@ -8,7 +8,7 @@
 /// simple exponential smoothing, and calibration offset support.
 /// Reference implementation adapted from ArticCircle/OC_ADC.cpp.
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 class ADCImpl : public hal::ADCInterface {
 public:
@@ -34,4 +34,4 @@ private:
     std::array<uint16_t, 4> offsets_;
 };
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

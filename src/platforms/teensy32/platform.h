@@ -1,9 +1,9 @@
 #pragma once
-#include "adc_teensy36.h"
-#include "dac_teensy36.h"
-#include "gpio_teensy36.h"
-#include "timer_teensy36.h"
-#include "storage_teensy36.h"
+#include "adc_teensy32.h"
+#include "dac_teensy32.h"
+#include "gpio_teensy32.h"
+#include "timer_teensy32.h"
+#include "storage_teensy32.h"
 #include "oc/hal/adc.h"
 #include "oc/hal/dac.h"
 #include "oc/hal/gpio.h"
@@ -23,7 +23,7 @@
 ///   audio.init(hw.adc(), hw.dac(), hw.gpio());
 ///   hw.timer().start(100, my_isr);
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 class HardwarePlatform {
 public:
@@ -47,4 +47,4 @@ private:
     StorageImpl storage_;
 };
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32

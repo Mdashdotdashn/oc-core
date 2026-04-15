@@ -4,14 +4,20 @@
 /// on Teensy 3.6 hardware. To write your own algorithm, replace
 /// SimpleLFO with your own Application subclass.
 
-#include "platforms/teensy36/all.h"
+#include "platforms/teensy32/all.h"
 #include "simple_lfo.h"
+#include <Arduino.h>
+
+// Debug / timing pin — toggle this around audio_callback() and measure
+// the high pulse width on a scope or logic analyser.
+// Pin 24 = OC_GPIO_DEBUG_PIN1 (back of board, spare GPIO, per OC_gpio.h).
+static constexpr uint8_t kTimingPin = 24;
 
 // ---------------------------------------------------------------------------
 // Global instances — same pattern as Daisy examples
 // ---------------------------------------------------------------------------
 
-oc::platform::teensy36::HardwarePlatform hw;
+oc::platform::teensy32::HardwarePlatform hw;
 oc::core::PeriodicCore                   audio;
 SimpleLFO                                app;
 
@@ -20,6 +26,8 @@ SimpleLFO                                app;
 // ---------------------------------------------------------------------------
 
 void FASTRUN audio_callback() {
+    digitalWriteFast(kTimingPin, HIGH);   // --- ISR start ---
+
     // Step 1: Scan hardware (ADC + GPIO) and build CoreState
     audio.isr_cycle();
 
@@ -42,6 +50,8 @@ void FASTRUN audio_callback() {
         hw.dac()->write(i, out.cv[i]);
     }
     hw.dac()->flush();
+
+    digitalWriteFast(kTimingPin, LOW);    // --- ISR end ---
 }
 
 // ---------------------------------------------------------------------------
@@ -49,6 +59,10 @@ void FASTRUN audio_callback() {
 // ---------------------------------------------------------------------------
 
 int main() {
+    // Timing pin: configure before starting the ISR
+    pinMode(kTimingPin, OUTPUT);
+    digitalWriteFast(kTimingPin, LOW);
+
     // Initialize all hardware (ADC, DAC, GPIO)
     hw.init_all();
 

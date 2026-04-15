@@ -5,7 +5,7 @@
 /// Teensy 3.6 Storage implementation.
 /// Wraps the Teensy EEPROM library for persistent calibration storage.
 
-namespace oc::platform::teensy36 {
+namespace oc::platform::teensy32 {
 
 class StorageImpl : public hal::StorageInterface {
 public:
@@ -14,4 +14,4 @@ public:
     uint32_t capacity() const                                         override;
 };
 
-} // namespace oc::platform::teensy36
+} // namespace oc::platform::teensy32
