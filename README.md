@@ -175,6 +175,17 @@ DAC timing note:
 
 The `while(1)` main loop is preempted freely and carries no timing obligations.
 
+Display pipeline:
+- `draw()` is called outside the ISR from `Runtime::poll()`.
+- `draw()` only renders into a RAM backbuffer; it does not talk to the OLED directly.
+- `begin_frame()` returns a writable framebuffer, and `end_frame()` marks that finished frame as ready for transfer.
+- The actual OLED transfer happens inside the core ISR, one `128`-byte page at a time via DMA.
+- ISR order for display apps is: `display->flush()` → `dac->flush()` → `display->update()` → control work.
+- `flush()` finalizes the previous OLED page DMA and clears shared SPI state.
+- `update()` starts the next OLED page DMA, or begins a new frame if a rendered backbuffer is ready.
+- A full `128x64` framebuffer is `8` pages, so at `10 kHz` and one page per ISR a full screen refresh takes about `0.8 ms`.
+- This split exists so the OLED and DAC can safely share `SPI0` without DMA/FIFO clashes.
+
 Input acquisition policy:
 - Today, CV and gate acquisition run in the same ISR as output generation so each control tick sees a coherent input snapshot and has a bounded input-to-output latency.
 - This is a design choice, not a hard requirement for every input type.
