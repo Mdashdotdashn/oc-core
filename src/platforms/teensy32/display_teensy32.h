@@ -34,13 +34,13 @@ public:
         }
     }
 
-    /// main_loop: acquire a writable framebuffer.
+    /// idle: acquire a writable framebuffer.
     bool begin_frame() override {
         current_frame_ = frame_buf_.writeable() ? frame_buf_.writeable_frame() : nullptr;
         return current_frame_ != nullptr;
     }
 
-    /// main_loop: submit the rendered frame for DMA transfer.
+    /// idle: submit the rendered frame for DMA transfer.
     void end_frame() override {
         if (current_frame_) {
             frame_buf_.written();

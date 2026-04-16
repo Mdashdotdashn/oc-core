@@ -2,7 +2,7 @@
 
 Hardware Abstraction Framework for Ornament & Crime (Teensy 3.2).
 
-Inspired by the Daisy Versio/Legio developer experience: write your algorithm once, plug it into the platform via two methods. The `audio_callback + main_loop` pattern is taken directly from the Daisy examples — see the reference implementations in `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` and `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp`.
+Inspired by the Daisy Versio/Legio developer experience: write your algorithm once, plug it into the platform via two methods. The `audio_callback + idle` pattern is taken directly from the Daisy examples — see the reference implementations in `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` and `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp`.
 
 ## Local Workspace Paths
 
@@ -32,7 +32,7 @@ public:
     }
 
     // Called from while(1) — not timing-critical
-    void main_loop() override { /* UI, parameters, display */ }
+    void idle() override { /* UI, parameters, display */ }
 };
 ```
 
@@ -41,33 +41,33 @@ public:
 #include "platforms/teensy32/all.h"
 #include "my_algorithm.h"
 
-oc::platform::teensy32::HardwarePlatform hw;
-oc::core::PeriodicCore                   audio;
-MyAlgorithm                              app;
+using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform, false>;
 
-void FASTRUN audio_callback() {
-    audio.isr_cycle();
-    const oc::core::CoreState& st = audio.get_state();
-
-    oc::AudioIn in;
-    for (int i = 0; i < 4; ++i) {
-        in.cv[i] = st.inputs.cv[i];  in.gate[i] = st.inputs.gate[i];
-    }
-    in.gate_edges = st.inputs.edges;
-
-    oc::AudioOut out;
-    app.audio_callback(in, out);
-
-    for (int i = 0; i < 4; ++i) hw.dac()->write(i, out.cv[i]);
-    hw.dac()->flush();
-}
+Runtime     runtime;
+MyAlgorithm app;
 
 int main() {
-    hw.init_all();
-    audio.init(hw.adc(), hw.dac(), hw.gpio());
-    app.init();
-    hw.timer()->start(100, audio_callback);   // 100µs = 10 kHz
-    while (true) app.main_loop();
+    runtime.init(app);
+    runtime.start(100);   // 100µs = 10 kHz
+
+    while (true) {
+        runtime.poll();
+    }
+}
+```
+
+Display-capable apps use the display-enabled specialization and override `draw()`:
+
+```cpp
+using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform, true>;
+
+Runtime   runtime;
+MyDisplayApp app;
+
+int main() {
+    runtime.init(app);
+    runtime.start(100);
+    while (true) runtime.poll();
 }
 ```
 
@@ -141,15 +141,15 @@ oc-core/
 │  User Code                                              │
 │  class MyAlgo : public oc::Application {                │
 │      audio_callback(AudioIn& in, AudioOut& out)         │  ← writes algorithm here
-│      main_loop()                                        │  ← writes UI/params here
+│      idle()                                             │  ← writes UI/params here
 │  }                                                      │
 └────────────────────────┬────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│  Framework  (oc::core::PeriodicCore)                    │
-│  • isr_cycle()    — scans ADC + GPIO → CoreState        │
-│  • get_state()    — exposes CoreState to audio ISR      │
-│  ~300 lines, no business logic                          │
+│  Framework  (oc::Runtime + oc::core::PeriodicCore)      │
+│  • Runtime       — owns ISR ordering + app dispatch     │
+│  • isr_cycle()   — scans ADC + GPIO → CoreState         │
+│  • get_state()   — exposes CoreState to Runtime         │
 └───────┬──────────┬───────────┬──────────────────────────┘
         │          │           │
    ADCInterface  DACInterface  GPIOInterface   ← pure abstract HAL
@@ -169,7 +169,7 @@ The audio ISR fires at 10 kHz (100 µs). It calls `isr_cycle()` then `audio_call
 
 ### Phase 1 — Scaffold ✅ (done)
 - [x] HAL abstract interfaces: `adc.h`, `dac.h`, `gpio.h`, `timer.h`, `storage.h`
-- [x] `oc::Application` base class with `audio_callback` + `main_loop`
+- [x] `oc::Application` base class with `audio_callback` + `idle`
 - [x] `oc::core::PeriodicCore` ISR coordinator
 - [x] Teensy 3.2 platform stubs for all 5 devices
 - [x] `examples/lfo` — complete end-to-end template
@@ -213,7 +213,7 @@ Display bring-up result:
 | Example | Demonstrates |
 |---------|-------------|
 | `examples/quantizer` | Multi-channel CV processing, scale lookup |
-| `examples/turing_machine` | State across ISR cycles, gate triggering, `main_loop` parameter updates |
+| `examples/turing_machine` | State across ISR cycles, gate triggering, `idle` parameter updates |
 
 ### Phase 5 — Documentation & Polish
 - `docs/GETTING_STARTED.md` — new user guide (< 5 pages)

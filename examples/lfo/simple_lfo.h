@@ -51,7 +51,7 @@ public:
         out.cv[0] = out.cv[1] = out.cv[2] = out.cv[3] = output;
     }
 
-    void main_loop() override {
+    void idle() override {
         // Nothing needed for this example.
         // Real apps would update parameters here.
     }

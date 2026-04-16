@@ -42,7 +42,7 @@ public:
         out = out_;
     }
 
-    void main_loop() override {}
+    void idle() override {}
 
 private:
     static constexpr float kStep = 0.5f;

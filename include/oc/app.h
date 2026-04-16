@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include "oc/hal/display.h"
 
 /// oc-core: User Application Interface
 ///
@@ -10,7 +11,7 @@
 /// Application base class with the two-method contract:
 ///
 ///   audio_callback(in, out)   — real-time, called every 100µs
-///   main_loop()               — background, called from while(1)
+///   idle()                    — background, called from while(1)
 ///
 /// Usage:
 ///   #include "oc/app.h"
@@ -19,7 +20,7 @@
 ///   public:
 ///       void init() override { ... }
 ///       void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override { ... }
-///       void main_loop() override { ... }
+///       void idle() override { ... }
 ///   };
 
 namespace oc {
@@ -51,7 +52,7 @@ struct AudioIn {
     uint32_t gate_edges;
 
     /// Front-panel push-buttons. [0] = UP (pin 5), [1] = DOWN (pin 4).
-    /// Poll from audio_callback(); cache values in member vars if needed in main_loop().
+    /// Poll from audio_callback(); cache values in member vars if needed in idle().
     std::array<ButtonState, 2> buttons;
 
     /// Rotary encoders. [0] = LEFT, [1] = RIGHT.
@@ -96,7 +97,7 @@ struct AudioOut {
 /// Base class for user algorithms.
 ///
 /// Subclass this and implement audio_callback(). Optionally override init()
-/// and main_loop(). Everything stays in your class — no global state needed.
+/// and idle(). Everything stays in your class — no global state needed.
 class Application {
 public:
     virtual ~Application() = default;
@@ -116,7 +117,17 @@ public:
     ///
     /// Safe for: parameter updates, UI, display, file I/O, Serial.
     /// Not timing-critical — will be preempted by the ISR timer.
-    virtual void main_loop() {}
+    virtual void idle() {}
+
+    /// Return true if this app uses the shared OLED display path.
+    /// Display-enabled apps use a slightly different ISR ordering so the next
+    /// OLED DMA page starts early and DAC writes are staged one control tick
+    /// ahead to preserve SPI timing margin.
+    virtual bool uses_display() const { return false; }
+
+    /// Optional OLED drawing hook, called from the background loop.
+    /// Default implementation does nothing.
+    virtual void draw(hal::DisplayInterface* /*display*/) {}
 
     /// Called when the system is shutting down cleanly.
     virtual void shutdown() {}

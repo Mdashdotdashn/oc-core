@@ -28,9 +28,11 @@ public:
         right_click_= in.encoders[1].click_pressed;
     }
 
-    void main_loop() override { /* drawing happens in draw() called from main */ }
+    void idle() override { /* drawing happens in draw() called from main */ }
 
-    void draw(oc::hal::DisplayInterface* display) {
+    bool uses_display() const override { return true; }
+
+    void draw(oc::hal::DisplayInterface* display) override {
         if (!display->begin_frame()) return;
 
         gfx_.Begin(display->frame_buffer(), true);  // true = clear before drawing

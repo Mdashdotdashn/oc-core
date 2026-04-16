@@ -12,7 +12,7 @@
 ///              hw.dac()->flush();       // DAC SPI (same bus, interleaved)
 ///              hw.display()->update();  // start next DMA page
 ///
-///   main_loop: if (hw.display()->begin_frame()) {
+///   idle:      if (hw.display()->begin_frame()) {
 ///                  // draw using weegfx::Graphics into the framebuffer
 ///                  hw.display()->end_frame();
 ///              }
@@ -30,7 +30,7 @@ public:
     virtual void update() = 0;
 
     /// Try to acquire a writable framebuffer. Returns true if one is available.
-    /// Call from main_loop() only. If true, draw, then call end_frame().
+    /// Call from idle() only. If true, draw, then call end_frame().
     virtual bool begin_frame() = 0;
 
     /// Mark the current frame as written and ready for DMA transfer.

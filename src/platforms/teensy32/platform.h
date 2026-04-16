@@ -34,7 +34,7 @@ namespace oc::platform::teensy32 {
 
 class HardwarePlatform {
 public:
-    void init_all() {
+    void init_base() {
         // SPI0 bus (shared by DAC and OLED) must be initialized before either device.
         // Sets MOSI/SCK drive strength, CTAR0 (8-bit) and CTAR1 (16-bit) at 18 MHz.
         spi0_init();
@@ -43,7 +43,15 @@ public:
         gpio_.init();
         buttons_.init();
         encoders_.init();
+    }
+
+    void init_display() {
         display_.init();
+    }
+
+    void init_all() {
+        init_base();
+        init_display();
     }
 
     hal::ADCInterface*      adc()      { return &adc_;      }
