@@ -89,3 +89,11 @@ oc-core/
 - The OLED is always present and shares `SPI0` with the DAC.
 - DAC values are computed every ISR and committed to hardware at the start of the next ISR.
 - Buttons and encoders are serviced by a separate lower-rate UI timer.
+
+## Included Examples
+
+- `examples/lfo` basic CV generation example
+- `examples/encoder_test` front-panel encoder and switch test
+- `examples/display_test` OLED, buttons, and encoder integration test
+- `examples/cpu_meter` ISR load meter with bucketed runtime profiling
+- `examples/trigger_test` 4-trigger input state and rising-edge test
