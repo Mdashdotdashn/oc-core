@@ -30,7 +30,9 @@ private:
 
     uint8_t  current_channel_ = 0;
     std::array<uint32_t, 4> raw_;
-    std::array<uint32_t, 4> smoothed_;
+    std::array<uint32_t, 4> smoothed_accumulator_;
+    std::array<uint32_t, 4> smoothed_value_;
+    std::array<int32_t, 4> calibrated_;
     std::array<uint16_t, 4> offsets_;
 };
 

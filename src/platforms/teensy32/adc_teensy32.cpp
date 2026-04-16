@@ -9,7 +9,9 @@ namespace {
 
 ADCImpl::ADCImpl() {
     raw_.fill(0);
-    smoothed_.fill(0);
+    smoothed_accumulator_.fill(0);
+    smoothed_value_.fill(0);
+    calibrated_.fill(0);
     offsets_.fill(0);
 }
 
@@ -28,10 +30,14 @@ void ADCImpl::scan() {
         const uint32_t raw = static_cast<uint32_t>(adc_obj_.readSingle(ADC_0));
         raw_[current_channel_] = raw;
         // Exponential moving average:  s = s - s>>k + raw
-        smoothed_[current_channel_] =
-            smoothed_[current_channel_] -
-            (smoothed_[current_channel_] >> kSmoothing) +
+        smoothed_accumulator_[current_channel_] =
+            smoothed_accumulator_[current_channel_] -
+            (smoothed_accumulator_[current_channel_] >> kSmoothing) +
             raw;
+        const uint32_t smoothed = smoothed_accumulator_[current_channel_] >> kSmoothing;
+        smoothed_value_[current_channel_] = smoothed;
+        calibrated_[current_channel_] =
+            static_cast<int32_t>(offsets_[current_channel_]) - static_cast<int32_t>(smoothed);
     }
 
     // Advance to the next channel and start a new conversion
@@ -44,17 +50,16 @@ uint32_t ADCImpl::read_raw(uint8_t ch) const {
 }
 
 uint32_t ADCImpl::get_smoothed(uint8_t ch) const {
-    return smoothed_[ch] >> kSmoothing;  // Shift back to 0-4095 range
+    return smoothed_value_[ch];
 }
 
 int32_t ADCImpl::get_calibrated(uint8_t ch) const {
-    // Calibration convention from OC_ADC: offset - smoothed_value
-    return static_cast<int32_t>(offsets_[ch]) -
-           static_cast<int32_t>(get_smoothed(ch));
+    return calibrated_[ch];
 }
 
 void ADCImpl::set_calibration_offset(uint8_t channel, uint16_t offset) {
     offsets_[channel] = offset;
+    calibrated_[channel] = static_cast<int32_t>(offset) - static_cast<int32_t>(smoothed_value_[channel]);
 }
 
 } // namespace oc::platform::teensy32
