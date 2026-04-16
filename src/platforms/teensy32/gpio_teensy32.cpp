@@ -3,10 +3,7 @@
 
 namespace oc::platform::teensy32 {
 
-GPIOImpl::GPIOImpl() {
-    last_state_.fill(false);
-    current_state_.fill(false);
-}
+GPIOImpl::GPIOImpl() = default;
 
 void GPIOImpl::init() {
     for (int i = 0; i < 4; ++i) {
@@ -15,20 +12,20 @@ void GPIOImpl::init() {
 }
 
 void GPIOImpl::scan() {
-    edge_mask_ = 0;
-    for (int i = 0; i < 4; ++i) {
-        // Gate inputs on O&C are active-low (inverted)
-        const bool state = !digitalReadFast(kPins[i]);
-        current_state_[i] = state;
-        if (state && !last_state_[i]) {
-            edge_mask_ |= (1u << i);  // rising edge detected
-        }
-        last_state_[i] = state;
-    }
+    // Gate inputs on O&C are active-low (inverted).
+    const uint8_t current_state_mask =
+        (static_cast<uint8_t>(!digitalReadFast(0)) << 0) |
+        (static_cast<uint8_t>(!digitalReadFast(1)) << 1) |
+        (static_cast<uint8_t>(!digitalReadFast(2)) << 2) |
+        (static_cast<uint8_t>(!digitalReadFast(3)) << 3);
+
+    current_state_mask_ = current_state_mask;
+    edge_mask_ = static_cast<uint32_t>(current_state_mask_ & ~last_state_mask_);
+    last_state_mask_ = current_state_mask_;
 }
 
 bool GPIOImpl::read_input(uint8_t ch) const {
-    return current_state_[ch];
+    return ((current_state_mask_ >> ch) & 0x1u) != 0;
 }
 
 uint32_t GPIOImpl::get_edge_mask() const {

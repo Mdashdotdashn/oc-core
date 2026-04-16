@@ -1,7 +1,6 @@
 #pragma once
 #include "oc/hal/gpio.h"
 #include <cstdint>
-#include <array>
 
 /// Teensy 3.6 GPIO / digital gate input implementation.
 /// Reads 4 gate inputs and detects rising edges.
@@ -23,9 +22,9 @@ private:
     // TR1-TR4 gate input pins (verified against ArticCircle/OC_gpio.h)
     static constexpr uint8_t kPins[4] = {0, 1, 2, 3};  // TR1=0, TR2=1, TR3=2, TR4=3
 
-    std::array<bool, 4> last_state_;
-    std::array<bool, 4> current_state_;
-    uint32_t            edge_mask_ = 0;
+    uint8_t  last_state_mask_ = 0;
+    uint8_t  current_state_mask_ = 0;
+    uint32_t edge_mask_ = 0;
 };
 
 } // namespace oc::platform::teensy32
