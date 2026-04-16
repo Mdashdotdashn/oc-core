@@ -34,16 +34,18 @@ void DACImpl::init() {
     pinMode(kDacCS,  OUTPUT);
     pinMode(kDacRST, OUTPUT);
 
-    // DAC8565 reset: pulse RST low then high to clear all internal registers
-    // and set all outputs to 0 (minimum). This ensures a defined startup state.
+    // DAC8565 reset: pulse RST low then high to clear all internal registers.
     digitalWrite(kDacRST, LOW);
-    delayMicroseconds(1);           // t_reset_pulse min = 10 ns; 1µs is ample
+    delayMicroseconds(1);
     digitalWrite(kDacRST, HIGH);
-    delayMicroseconds(1);           // settle before first SPI transaction
+    delayMicroseconds(1);
 
+    // spi0_init() has already set MOSI/SCK with DSE and configured CTAR0/CTAR1.
+    // SPIFIFO.begin() sets the hardware CS pin and the pcs selector; it writes
+    // the same CTAR values so it's safe to call after spi0_init().
     SPIFIFO.begin(kDacCS, DAC_SPICLOCK, SPI_MODE0);
 
-    // Drive all outputs to minimum (−3V) on startup, then let the app set values
+    // Drive all outputs to minimum on startup.
     staged_.fill(0);
     flush();
 }

@@ -87,7 +87,10 @@ oc-core/
 │   ├── app.h                      # User interface (Application, AudioIn, AudioOut)
 │   ├── hal/
 │   │   ├── adc.h                  # ADCInterface   — 4-channel CV input
+│   │   ├── buttons.h              # ButtonsInterface — 2 debounced front-panel buttons
 │   │   ├── dac.h                  # DACInterface   — 4-channel CV output
+│   │   ├── display.h              # DisplayInterface — SH1106 OLED framebuffer + DMA paging
+│   │   ├── encoders.h             # EncodersInterface — 2 quadrature encoders + switches
 │   │   ├── gpio.h                 # GPIOInterface  — 4 gate inputs + edge detection
 │   │   ├── timer.h                # TimerInterface — periodic ISR registration
 │   │   └── storage.h              # StorageInterface — EEPROM read/write
@@ -102,16 +105,27 @@ oc-core/
 │           ├── platform.h         # HardwarePlatform — owns all device instances
 │           ├── all.h              # Convenience single-include for main.cpp
 │           ├── adc_teensy32.h/cpp
-│           ├── dac_teensy32.h/cpp  ⚠ SPI driver stub — see Phase 2
-│           ├── gpio_teensy32.h/cpp ⚠ Pin numbers stub — see Phase 2
+│           ├── buttons_teensy32.h/cpp
+│           ├── dac_teensy32.h/cpp
+│           ├── display_teensy32.h
+│           ├── encoders_teensy32.h/cpp
+│           ├── gpio_teensy32.h/cpp
+│           ├── spi0_init.h        # Shared SPI0 setup for DAC + OLED
 │           ├── timer_teensy32.h/cpp
-│           └── storage_teensy32.h/cpp
+│           ├── storage_teensy32.h/cpp
+│           └── drivers/
+│               ├── SH1106_128x64_driver.h/cpp
+│               ├── framebuffer.h
+│               ├── gfx_font_6x8.h
+│               ├── page_display_driver.h
+│               └── weegfx.h/cpp
 │
 ├── examples/
 │   ├── lfo/                       # Triangle LFO — complete end-to-end example
 │   │   ├── simple_lfo.h           # Algorithm (100 lines)
 │   │   ├── main.cpp               # Firmware entry point (~40 lines)
 │   │   └── platformio.ini         # Isolated PlatformIO project
+│   ├── display_test/              # Buttons + encoders + OLED integration test
 │   ├── quantizer/                 # (placeholder)
 │   └── turing_machine/            # (placeholder)
 │
@@ -181,12 +195,19 @@ Wire the stubs to real hardware. All source material lives in `~/devtree/marc-no
 - `~/devtree/sdk/DaisyExamples/legio/FMOscillator/FMOscillator.cpp` — knob + gate + audio callback
 - `~/devtree/sdk/DaisyExamples/versio/Decimator/Decimator.cpp` — minimal effect callback
 
-### Phase 3 — Integration Test (in progress)
+### Phase 3 — UI + Display Integration ✅
 - [x] Build `examples/lfo` — clean build, 13.6 kB Flash / 4.7 kB RAM (Teensy 3.2: 256 kB Flash, 64 kB RAM)
 - [x] ISR timing pin added: `digitalWriteFast(24, HIGH/LOW)` around `audio_callback()`
-- [ ] Flash to hardware — run `make flash` (or `pio run -t upload -d examples/lfo`); board must be in bootloader mode (press reset button)
-- [ ] Verify triangle wave on all 4 CV outputs
-- [ ] Measure ISR pulse width on pin 24 (scope/logic analyser); target < 50 µs
+- [x] Buttons HAL verified on hardware
+- [x] Encoders HAL verified on hardware
+- [x] SH1106 OLED HAL verified on hardware
+- [x] `examples/display_test` verified with buttons, encoders, and display active together
+
+Display bring-up result:
+- The OLED and DAC can share `SPI0`, but the OLED page DMA must start early in the ISR.
+- Working order is: `display->flush()` → `dac->flush()` of values staged on the previous cycle → `display->update()` → ADC/GPIO/buttons/encoders/app work → stage DAC values for the next ISR.
+- If `display->update()` runs late, the next ISR's `flush()` can terminate the OLED page transfer early, which shows up as a vertical garbage band on the right edge of the display.
+- `SH1106_128x64_Driver::Flush()` also halts SPI0 and clears TX/RX FIFOs before returning control to the DAC path so OLED DMA bytes cannot intermix with DAC `SPIFIFO` writes.
 
 ### Phase 4 — Additional Examples
 | Example | Demonstrates |
