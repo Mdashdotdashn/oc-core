@@ -8,7 +8,7 @@
 #include "display_test.h"
 #include <Arduino.h>
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform, true>;
+using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
 
 Runtime     runtime;
 DisplayTest app;

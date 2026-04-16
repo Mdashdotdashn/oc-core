@@ -8,10 +8,11 @@
 /// This is the only header a user algorithm needs to include.
 /// It defines AudioIn (inputs from hardware each ISR cycle),
 /// AudioOut (outputs the user writes to each cycle), and the
-/// Application base class with the two-method contract:
+/// Application base class with the user-facing contract:
 ///
 ///   audio_callback(in, out)   — real-time, called every 100µs
 ///   idle()                    — background, called from while(1)
+///   draw(display)             — background OLED rendering into a backbuffer
 ///
 /// Usage:
 ///   #include "oc/app.h"
@@ -118,12 +119,6 @@ public:
     /// Safe for: parameter updates, UI, display, file I/O, Serial.
     /// Not timing-critical — will be preempted by the ISR timer.
     virtual void idle() {}
-
-    /// Return true if this app uses the shared OLED display path.
-    /// Display-enabled apps use a slightly different ISR ordering so the next
-    /// OLED DMA page starts early and DAC writes are staged one control tick
-    /// ahead to preserve SPI timing margin.
-    virtual bool uses_display() const { return false; }
 
     /// Optional OLED drawing hook, called from the background loop.
     /// Default implementation does nothing.

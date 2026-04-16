@@ -30,8 +30,6 @@ public:
 
     void idle() override { /* drawing happens in draw() called from main */ }
 
-    bool uses_display() const override { return true; }
-
     void draw(oc::hal::DisplayInterface* display) override {
         if (!display->begin_frame()) return;
 

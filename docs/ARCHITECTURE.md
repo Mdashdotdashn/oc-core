@@ -1,0 +1,144 @@
+# Architecture
+
+## High-Level Structure
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  User Code                                              │
+│  class MyAlgo : public oc::Application {                │
+│      audio_callback(AudioIn& in, AudioOut& out)         │
+│      idle()                                             │
+│      draw(DisplayInterface* display)                    │
+│  }                                                      │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│  Framework  (oc::Runtime + oc::core::PeriodicCore)      │
+│  • Runtime       owns ISR ordering and app dispatch     │
+│  • isr_cycle()   scans ADC + GPIO into CoreState        │
+│  • get_state()   exposes CoreState to Runtime           │
+└───────┬──────────┬───────────┬──────────────────────────┘
+        │          │           │
+   ADCInterface  DACInterface  GPIOInterface
+        │          │           │
+┌───────▼──────────▼───────────▼──────────────────────────┐
+│  Teensy 3.2 Platform  (src/platforms/teensy32/)         │
+│  ADCImpl / DACImpl / GPIOImpl / TimerImpl / StorageImpl │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Repository Layout
+
+```text
+oc-core/
+├── include/oc/
+│   ├── app.h
+│   ├── hal/
+│   │   ├── adc.h
+│   │   ├── buttons.h
+│   │   ├── dac.h
+│   │   ├── display.h
+│   │   ├── encoders.h
+│   │   ├── gpio.h
+│   │   ├── timer.h
+│   │   └── storage.h
+│   └── core/
+│       └── periodic_core.h
+├── src/
+│   ├── core/
+│   │   └── periodic_core.cpp
+│   └── platforms/
+│       └── teensy32/
+│           ├── platform.h
+│           ├── all.h
+│           ├── adc_teensy32.h/cpp
+│           ├── buttons_teensy32.h/cpp
+│           ├── dac_teensy32.h/cpp
+│           ├── display_teensy32.h
+│           ├── encoders_teensy32.h/cpp
+│           ├── gpio_teensy32.h/cpp
+│           ├── spi0_init.h
+│           ├── timer_teensy32.h/cpp
+│           ├── storage_teensy32.h/cpp
+│           └── drivers/
+│               ├── SH1106_128x64_driver.h/cpp
+│               ├── framebuffer.h
+│               ├── gfx_font_6x8.h
+│               ├── page_display_driver.h
+│               └── weegfx.h/cpp
+├── examples/
+│   ├── cpu_meter/
+│   ├── lfo/
+│   ├── display_test/
+│   ├── quantizer/
+│   └── turing_machine/
+└── docs/
+```
+
+## Unified ISR Timing
+
+The audio ISR fires at `10 kHz` with a `100 us` period. Because the OLED always shares `SPI0` with the DAC, every app follows the same schedule.
+
+```text
+ISR tick N begins
+    1. display->flush()     complete the previous OLED page DMA and clean SPI0 state
+    2. dac->flush()         send CV values staged during tick N-1 to the DAC8565
+    3. display->update()    start the next OLED page DMA, or begin a new frame if ready
+    4. core_.isr_cycle()    scan ADC and GPIO, capture a coherent CV/gate snapshot
+    5. marshal UI state     fold in latest button/encoder scan from the separate UI timer
+    6. audio_callback()     app computes the next four CV outputs from that snapshot
+    7. dac->write()         stage those new CV outputs for tick N+1
+ISR tick N ends
+
+Foreground loop runs between ISR ticks
+    A. idle()               non-real-time app work
+    B. draw()               render into the OLED backbuffer in RAM
+    C. end_frame()          publish the finished frame for later DMA transfer
+```
+
+That means output computation still happens every ISR, but the hardware DAC commit is intentionally one control tick behind the computation so the OLED DMA page transfer can start early and complete reliably.
+
+## Display Pipeline
+
+- `draw()` is called from `Runtime::poll()` outside the ISR.
+- `draw()` only renders into a RAM backbuffer.
+- `begin_frame()` returns the writable framebuffer.
+- `end_frame()` publishes the finished frame for transfer.
+- The OLED transfer happens inside the ISR, one `128`-byte page at a time via DMA.
+- `flush()` finalizes the previous OLED page DMA and clears shared SPI state.
+- `update()` starts the next OLED page DMA, or starts a new frame if a rendered backbuffer is ready.
+- A full `128x64` framebuffer is `8` pages, so at `10 kHz` and one page per ISR a full refresh takes about `0.8 ms`.
+
+## Input Acquisition Policy
+
+- CV and gate acquisition run in the same ISR as output generation.
+- This gives each control tick a coherent input snapshot and a bounded input-to-output latency.
+- Buttons and encoders run from a separate lower-rate UI timer path rather than the `10 kHz` core ISR.
+- The separate UI timer path for buttons and encoders has been verified on hardware.
+- Gates are more timing-sensitive because short triggers and edge detection can be missed if polling becomes too irregular.
+- CV acquisition could also move out of the main ISR, but snapshot age and latency would then depend on a separate schedule.
+
+## DAC Behavior
+
+- There is no audio-style sample buffer in the current system.
+- The app computes one set of four CV outputs per ISR.
+- `dac->write()` stages those values.
+- `dac->flush()` sends them directly to the DAC8565 over SPI at the start of the next ISR.
+
+## Design Constraints
+
+| Constraint | Rationale |
+|-----------|-----------|
+| No heap allocation in ISR | Deterministic timing |
+| One active app at a time | Simpler scheduling and state ownership |
+| Plain function pointer ISR registration | Teensy `IntervalTimer::begin()` takes `void(*)()` |
+| Standalone PlatformIO examples | Prevent accidental source bleed from neighboring repos |
+
+## Isolation From ArticCircle
+
+`oc-core` is a sibling repository next to `ArticCircle`.
+
+- separate git history
+- all framework headers live under `include/oc/`
+- each example uses explicit `build_src_filter` rules
+- PlatformIO cannot accidentally pull unrelated ArticCircle sources into the build
