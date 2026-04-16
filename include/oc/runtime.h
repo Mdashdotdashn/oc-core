@@ -15,10 +15,15 @@ namespace oc {
 template <typename Platform, bool WithDisplay = false>
 class Runtime {
 public:
+    static constexpr uint32_t kDefaultUiIntervalUs = 1000;
     static constexpr uint8_t kNoTimingPin = 0xFF;
 
     void set_timing_pin(uint8_t pin) {
         timing_pin_ = pin;
+    }
+
+    void set_ui_interval_us(uint32_t interval_us) {
+        ui_interval_us_ = interval_us;
     }
 
     void init(Application& app) {
@@ -40,10 +45,14 @@ public:
 
     void start(uint32_t interval_us) {
         hw_.timer()->start(interval_us, isr_trampoline);
+        if (ui_interval_us_ > 0) {
+            hw_.timer()->start_ui(ui_interval_us_, ui_trampoline);
+        }
     }
 
     void stop() {
         hw_.timer()->stop();
+        hw_.timer()->stop_ui();
     }
 
     void poll() {
@@ -63,6 +72,18 @@ private:
         }
     }
 
+    static void FASTRUN ui_trampoline() {
+        if (active_instance_) {
+            active_instance_->ui_service();
+        }
+    }
+
+    void FASTRUN ui_service() {
+        hw_.buttons()->scan();
+        hw_.encoders()->scan();
+        ++ui_scan_generation_;
+    }
+
     void FASTRUN isr() {
         if (timing_pin_ != kNoTimingPin) {
             digitalWriteFast(timing_pin_, HIGH);
@@ -76,8 +97,10 @@ private:
         }
 
         core_.isr_cycle();
-        hw_.buttons()->scan();
-        hw_.encoders()->scan();
+
+        const uint32_t ui_generation = ui_scan_generation_;
+        const bool has_new_ui_scan = ui_generation != last_ui_generation_consumed_;
+        last_ui_generation_consumed_ = ui_generation;
 
         const core::CoreState& st = core_.get_state();
         AudioIn in{};
@@ -90,11 +113,19 @@ private:
 
         for (int i = 0; i < 2; ++i) {
             const auto button = hw_.buttons()->get(i);
-            in.buttons[i] = {button.pressed, button.just_pressed, button.just_released};
+            in.buttons[i] = {
+                button.pressed,
+                has_new_ui_scan ? button.just_pressed : false,
+                has_new_ui_scan ? button.just_released : false,
+            };
 
             const auto encoder = hw_.encoders()->get(i);
-            in.encoders[i] = {encoder.delta, encoder.click_pressed,
-                              encoder.click_just_pressed, encoder.click_just_released};
+            in.encoders[i] = {
+                static_cast<int8_t>(has_new_ui_scan ? encoder.delta : 0),
+                encoder.click_pressed,
+                has_new_ui_scan ? encoder.click_just_pressed : false,
+                has_new_ui_scan ? encoder.click_just_released : false,
+            };
         }
 
         AudioOut out{};
@@ -120,6 +151,9 @@ private:
     core::PeriodicCore core_{};
     Application*   app_ = nullptr;
     uint8_t        timing_pin_ = kNoTimingPin;
+    uint32_t       ui_interval_us_ = kDefaultUiIntervalUs;
+    volatile uint32_t ui_scan_generation_ = 0;
+    uint32_t       last_ui_generation_consumed_ = 0;
 };
 
 } // namespace oc

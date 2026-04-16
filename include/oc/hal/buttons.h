@@ -8,7 +8,7 @@
 /// Encoder clicks are handled separately in the encoder HAL.
 ///
 /// Debounce uses an 8-bit shift register (same algorithm as ArticCircle
-/// UI/ui_button.h). At 10 kHz polling the debounce window is ~0.7 ms.
+/// UI/ui_button.h). The effective debounce time depends on scan rate.
 
 namespace oc::hal {
 
@@ -24,7 +24,7 @@ public:
     virtual ~ButtonsInterface() = default;
 
     /// Read all button pins and advance shift-register state.
-    /// Call once per ISR cycle (or UI tick).
+    /// Call once per fixed-rate UI/service tick.
     virtual void scan() = 0;
 
     /// Return the debounced event state for button at index.

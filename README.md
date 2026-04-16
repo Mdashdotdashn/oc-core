@@ -77,6 +77,12 @@ cd examples/lfo
 pio run -t upload
 ```
 
+Callback rate note:
+- `audio_callback()` currently runs at `10 kHz` (`100 µs` period).
+- In practice this is a control/CV update rate, not an audio sample rate.
+- There is no audio buffer or audio codec in this framework right now; the name `audio_callback` is inherited from the original app shape, but the current implementation is driving CV, gates, encoders, buttons, and display updates.
+- This is not the same as the original O&C firmware: the original core ISR is commonly configured at about `16.67 kHz` (`60 µs` period, see `OC_CORE_ISR_FREQ = 16666` in the upstream config), while this framework currently uses a simpler `10 kHz` rate.
+
 ---
 
 ## Repository Layout
@@ -161,7 +167,23 @@ oc-core/
 └─────────────────────────────────────────────────────────┘
 ```
 
-The audio ISR fires at 10 kHz (100 µs). It calls `isr_cycle()` then `audio_callback()`. The `while(1)` main loop is preempted freely and carries no timing obligations.
+The audio ISR fires at 10 kHz (100 µs). It calls `isr_cycle()` then `audio_callback()`. Input acquisition and output computation happen in that same ISR cycle.
+
+DAC timing note:
+- For non-display apps, DAC values are written and flushed in the same ISR.
+- For display apps, DAC values are still computed in the same ISR, but the actual DAC SPI flush is intentionally deferred to the start of the next ISR so the OLED page DMA can start early and complete reliably.
+
+The `while(1)` main loop is preempted freely and carries no timing obligations.
+
+Input acquisition policy:
+- Today, CV and gate acquisition run in the same ISR as output generation so each control tick sees a coherent input snapshot and has a bounded input-to-output latency.
+- This is a design choice, not a hard requirement for every input type.
+- Buttons and encoders now run from a separate lower-rate UI timer path rather than the 10 kHz core ISR.
+- The separate UI timer path for buttons and encoders has been verified on hardware.
+- Gates are more timing-sensitive because short triggers and edge detection can be missed if polling becomes too irregular.
+- CV acquisition could also be moved out of the main ISR, but then the snapshot age and latency would vary with foreground load unless it moved to a separate fixed-rate service.
+- The current split is: keep CV/gate acquisition and output generation in the core ISR, and service buttons/encoders from a separate lower-rate timer.
+- A possible future split is to move gate/CV scanning as well, but only if measurements show the remaining core ISR load matters.
 
 ---
 

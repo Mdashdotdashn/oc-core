@@ -21,8 +21,15 @@ public:
     /// handler: raw function pointer called from hardware interrupt context.
     virtual void start(uint32_t interval_us, ISRHandler handler) = 0;
 
+    /// Start a second periodic timer for lower-rate UI/input housekeeping.
+    /// Typical use: buttons and encoders at ~1 kHz.
+    virtual void start_ui(uint32_t interval_us, ISRHandler handler) = 0;
+
     /// Stop the timer.
     virtual void stop() = 0;
+
+    /// Stop the UI timer.
+    virtual void stop_ui() = 0;
 };
 
 } // namespace oc::hal

@@ -27,7 +27,7 @@ public:
     virtual ~EncodersInterface() = default;
 
     /// Read all encoder pins and advance state machines.
-    /// Call once per ISR cycle (or UI tick at the same rate as buttons).
+    /// Call once per fixed-rate UI/service tick.
     virtual void scan() = 0;
 
     /// Return event state for encoder at index.

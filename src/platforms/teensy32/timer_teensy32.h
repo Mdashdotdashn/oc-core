@@ -9,7 +9,9 @@ namespace oc::platform::teensy32 {
 class TimerImpl : public hal::TimerInterface {
 public:
     void start(uint32_t interval_us, hal::ISRHandler handler) override;
+    void start_ui(uint32_t interval_us, hal::ISRHandler handler) override;
     void stop() override;
+    void stop_ui() override;
 };
 
 } // namespace oc::platform::teensy32
