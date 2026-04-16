@@ -19,6 +19,16 @@ public:
     static constexpr uint8_t kNoTimingPin = 0xFF;
     static constexpr uint8_t kIsrAverageShift = 4;
 
+    struct IsrProfile {
+        uint32_t total_cycles;
+        uint32_t display_cycles;
+        uint32_t dac_flush_cycles;
+        uint32_t scan_cycles;
+        uint32_t marshal_cycles;
+        uint32_t app_cycles;
+        uint32_t output_cycles;
+    };
+
     void set_timing_pin(uint8_t pin) {
         timing_pin_ = pin;
     }
@@ -32,17 +42,37 @@ public:
     }
 
     uint32_t isr_average_us() const {
-        const uint32_t cycles_per_us = F_CPU / 1000000U;
-        return cycles_per_us ? ((isr_avg_cycles_ + cycles_per_us / 2) / cycles_per_us) : 0;
+        return cycles_to_us(isr_avg_cycles_);
     }
 
     uint8_t isr_load_percent() const {
+        return cycles_to_load_percent(isr_avg_cycles_);
+    }
+
+    IsrProfile isr_profile() const {
+        return {
+            isr_avg_cycles_,
+            isr_display_avg_cycles_,
+            isr_dac_flush_avg_cycles_,
+            isr_scan_avg_cycles_,
+            isr_marshal_avg_cycles_,
+            isr_app_avg_cycles_,
+            isr_output_avg_cycles_,
+        };
+    }
+
+    uint32_t cycles_to_us(uint32_t cycles) const {
+        const uint32_t cycles_per_us = F_CPU / 1000000U;
+        return cycles_per_us ? ((cycles + cycles_per_us / 2) / cycles_per_us) : 0;
+    }
+
+    uint8_t cycles_to_load_percent(uint32_t cycles) const {
         const uint32_t budget_cycles = isr_budget_cycles();
         if (!budget_cycles) {
             return 0;
         }
         const uint32_t percent = static_cast<uint32_t>(
-            (static_cast<uint64_t>(isr_avg_cycles_) * 100U + budget_cycles / 2) / budget_cycles);
+            (static_cast<uint64_t>(cycles) * 100U + budget_cycles / 2) / budget_cycles);
         return static_cast<uint8_t>(percent > 100U ? 100U : percent);
     }
 
@@ -64,7 +94,7 @@ public:
 
     void start(uint32_t interval_us) {
         core_interval_us_ = interval_us;
-        isr_avg_cycles_ = 0;
+        reset_profiling();
         hw_.timer()->start(interval_us, isr_trampoline);
         if (ui_interval_us_ > 0) {
             hw_.timer()->start_ui(ui_interval_us_, ui_trampoline);
@@ -112,12 +142,24 @@ private:
 
         // The OLED is always present and shares SPI0 with the DAC. Start the
         // next page transfer first, then flush the DAC values staged last tick.
+        const uint32_t display_start_cycles = current_cycle_count();
         hw_.display()->flush();
+        const uint32_t display_flush_elapsed_cycles = current_cycle_count() - display_start_cycles;
+
+        const uint32_t dac_flush_start_cycles = current_cycle_count();
         hw_.dac()->flush();
+        const uint32_t dac_flush_elapsed_cycles = current_cycle_count() - dac_flush_start_cycles;
+
+        const uint32_t display_update_start_cycles = current_cycle_count();
         hw_.display()->update();
+        const uint32_t display_update_elapsed_cycles = current_cycle_count() - display_update_start_cycles;
+        const uint32_t display_elapsed_cycles = display_flush_elapsed_cycles + display_update_elapsed_cycles;
 
+        const uint32_t scan_start_cycles = current_cycle_count();
         core_.isr_cycle();
+        const uint32_t scan_elapsed_cycles = current_cycle_count() - scan_start_cycles;
 
+        const uint32_t marshal_start_cycles = current_cycle_count();
         const uint32_t ui_generation = ui_scan_generation_;
         const bool has_new_ui_scan = ui_generation != last_ui_generation_consumed_;
         last_ui_generation_consumed_ = ui_generation;
@@ -147,22 +189,47 @@ private:
                 has_new_ui_scan ? encoder.click_just_released : false,
             };
         }
+        const uint32_t marshal_elapsed_cycles = current_cycle_count() - marshal_start_cycles;
 
         AudioOut out{};
+        const uint32_t app_start_cycles = current_cycle_count();
         app_->audio_callback(in, out);
+        const uint32_t app_elapsed_cycles = current_cycle_count() - app_start_cycles;
 
+        const uint32_t output_start_cycles = current_cycle_count();
         for (int i = 0; i < 4; ++i) {
             hw_.dac()->write(i, out.cv[i]);
         }
+        const uint32_t output_elapsed_cycles = current_cycle_count() - output_start_cycles;
 
         if (timing_pin_ != kNoTimingPin) {
             digitalWriteFast(timing_pin_, LOW);
         }
 
         const uint32_t elapsed_cycles = current_cycle_count() - start_cycles;
-        int32_t avg_cycles = static_cast<int32_t>(isr_avg_cycles_);
-        avg_cycles += (static_cast<int32_t>(elapsed_cycles) - avg_cycles) >> kIsrAverageShift;
-        isr_avg_cycles_ = static_cast<uint32_t>(avg_cycles);
+        update_average(isr_avg_cycles_, elapsed_cycles);
+        update_average(isr_display_avg_cycles_, display_elapsed_cycles);
+        update_average(isr_dac_flush_avg_cycles_, dac_flush_elapsed_cycles);
+        update_average(isr_scan_avg_cycles_, scan_elapsed_cycles);
+        update_average(isr_marshal_avg_cycles_, marshal_elapsed_cycles);
+        update_average(isr_app_avg_cycles_, app_elapsed_cycles);
+        update_average(isr_output_avg_cycles_, output_elapsed_cycles);
+    }
+
+    static void update_average(volatile uint32_t& average_cycles, uint32_t sample_cycles) {
+        int32_t avg_cycles = static_cast<int32_t>(average_cycles);
+        avg_cycles += (static_cast<int32_t>(sample_cycles) - avg_cycles) >> kIsrAverageShift;
+        average_cycles = static_cast<uint32_t>(avg_cycles);
+    }
+
+    void reset_profiling() {
+        isr_avg_cycles_ = 0;
+        isr_display_avg_cycles_ = 0;
+        isr_dac_flush_avg_cycles_ = 0;
+        isr_scan_avg_cycles_ = 0;
+        isr_marshal_avg_cycles_ = 0;
+        isr_app_avg_cycles_ = 0;
+        isr_output_avg_cycles_ = 0;
     }
 
     static void enable_cycle_counter() {
@@ -196,6 +263,12 @@ private:
     volatile uint32_t ui_scan_generation_ = 0;
     uint32_t       last_ui_generation_consumed_ = 0;
     volatile uint32_t isr_avg_cycles_ = 0;
+    volatile uint32_t isr_display_avg_cycles_ = 0;
+    volatile uint32_t isr_dac_flush_avg_cycles_ = 0;
+    volatile uint32_t isr_scan_avg_cycles_ = 0;
+    volatile uint32_t isr_marshal_avg_cycles_ = 0;
+    volatile uint32_t isr_app_avg_cycles_ = 0;
+    volatile uint32_t isr_output_avg_cycles_ = 0;
 };
 
 } // namespace oc

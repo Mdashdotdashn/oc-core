@@ -20,39 +20,41 @@ public:
             return;
         }
 
-        const uint8_t load = runtime_.isr_load_percent();
-        const uint32_t avg_us = runtime_.isr_average_us();
-        const int bar_w = (load * 120) / 100;
+        const auto profile = runtime_.isr_profile();
+        const uint32_t known_cycles = profile.display_cycles + profile.dac_flush_cycles + profile.scan_cycles
+            + profile.marshal_cycles + profile.app_cycles + profile.output_cycles;
+        const uint32_t other_cycles = profile.total_cycles > known_cycles
+            ? profile.total_cycles - known_cycles
+            : 0;
 
         gfx_.Begin(display->frame_buffer(), true);
 
         gfx_.setPrintPos(0, 0);
-        gfx_.print("CPU meter");
+        gfx_.print("CPU buckets");
 
-        gfx_.setPrintPos(0, 14);
-        gfx_.print("ISR us:");
-        gfx_.print(static_cast<int>(avg_us));
-
-        gfx_.setPrintPos(0, 26);
-        gfx_.print("Load:");
-        gfx_.print(static_cast<int>(load));
-        gfx_.print("%");
-
-        gfx_.drawFrame(4, 44, 120, 12);
-        if (bar_w > 0) {
-            gfx_.drawRect(4, 44, bar_w, 12);
-        }
-
-        gfx_.setPrintPos(0, 58);
-        gfx_.print("0");
-        gfx_.setPrintPos(110, 58);
-        gfx_.print("100");
+        print_bucket(10, "TOT", profile.total_cycles);
+        print_bucket(18, "DSP", profile.display_cycles);
+        print_bucket(26, "DAC", profile.dac_flush_cycles);
+        print_bucket(34, "SCN", profile.scan_cycles);
+        print_bucket(42, "MRS", profile.marshal_cycles);
+        print_bucket(50, "APP", profile.app_cycles);
+        print_bucket(58, "OTH", other_cycles + profile.output_cycles);
 
         gfx_.End();
         display->end_frame();
     }
 
 private:
+    void print_bucket(int y, const char* label, uint32_t cycles) {
+        gfx_.setPrintPos(0, y);
+        gfx_.print(label);
+        gfx_.print(" ");
+        gfx_.print(static_cast<int>(runtime_.cycles_to_load_percent(cycles)));
+        gfx_.print("% ");
+        gfx_.print(static_cast<int>(runtime_.cycles_to_us(cycles)));
+        gfx_.print("us");
+    }
+
     RuntimeT& runtime_;
     weegfx::Graphics gfx_;
 };

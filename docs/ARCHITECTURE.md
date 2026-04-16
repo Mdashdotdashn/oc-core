@@ -125,6 +125,12 @@ That means output computation still happens every ISR, but the hardware DAC comm
 - `dac->write()` stages those values.
 - `dac->flush()` sends them directly to the DAC8565 over SPI at the start of the next ISR.
 
+## Runtime Profiling
+
+- `Runtime` keeps moving averages for total ISR time and internal timing buckets.
+- The current buckets are OLED work, DAC flush, hardware scan, input marshaling, app callback time, and residual overhead.
+- `examples/cpu_meter` displays those averages on the OLED so runtime cost can be attributed before optimizing app code.
+
 ## Design Constraints
 
 | Constraint | Rationale |
