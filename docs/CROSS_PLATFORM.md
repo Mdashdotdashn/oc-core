@@ -36,36 +36,25 @@ any machine can pick up the work without losing context.
 
 ### Windows (Git Bash)
 
-**Compile: probably works. Flash and clean: need one fix.**
+**Compile: verified. Flash: pending hardware verification.**
 
-**What should work:**
+**What works:**
 
 - PlatformIO resolves all include paths from `platformio.ini` internally, so
   the `../../include` relative paths are fine even on Windows.
 - Git Bash provides a POSIX `make` (from MSYS2/mingw) that can run the
   Makefile shell loops.
-- `pio run -d examples/lfo` called directly from Git Bash should compile.
+- `python3 -m platformio run -d examples/lfo` compiles successfully on Windows.
 
-**Known blocker — `make clean`:**
+**Makefile fix applied:**
 
-The Makefile currently sets `RM_RF := rd /s /q` on Windows, but `rd` is a
-`cmd.exe` built-in and is not available in Git Bash. Making clean fails.
+The Makefile used `rd /s /q` and `where` in the Windows branch, which are
+`cmd.exe` tools and do not work in Git Bash.
 
-Fix: replace the Windows branch with `rm -rf` unconditionally, since Git Bash
-provides `rm`. The `rd /s /q` branch is only needed for plain `cmd.exe`.
+Fixed by switching the Windows branch to Git Bash-compatible tools:
+`rm -rf`, `/dev/null`, and `command -v`.
 
 ```makefile
-# In Makefile, replace:
-ifeq ($(OS),Windows_NT)
-  DETECTED_OS := Windows
-  RM_RF       := rd /s /q
-  NULL        := nul
-  HAVE_CMD     = where $(1) >$(NULL) 2>&1
-else
-  ...
-endif
-
-# With (Git Bash has rm, so treat it like Unix):
 ifeq ($(OS),Windows_NT)
   DETECTED_OS := Windows
   RM_RF       := rm -rf
@@ -96,8 +85,10 @@ typically be on `PATH` after installation, so plain `make flash` should work.
 
 Priority order:
 
-1. **Fix the Makefile `clean` target for Git Bash** (see above — one-liner
-   change). Blocked on: none.
+1. **Verify Git Bash `make` wrapper end-to-end on Windows.**
+  - Compile was verified with direct PlatformIO invocation.
+  - Need to validate `make <example>` / `make clean` specifically in Git Bash
+    session (not PowerShell).
 
 2. **Add platform-specific install instructions to `docs/GETTING_STARTED.md`.**
    Currently only covers Linux. Should add:
@@ -110,9 +101,9 @@ Priority order:
    will require pressing the Teensy reset button because soft-reboot (`-s`
    flag) requires a running oc-core firmware.
 
-4. **Verify a real Windows Git Bash compile.** After the `clean` fix, the
-   most likely remaining issue is `pio` not being on PATH in Git Bash — fix
-   by adding the PlatformIO bin directory to `~/.bashrc`.
+4. **Verify a real Windows flash with hardware connected.**
+  - Compile is already verified.
+  - Upload (`pio run -t upload`) must still be tested on connected Teensy.
 
 5. **Consider dropping the arduino-cli fallback** or explicitly marking it
    "untested/unsupported". It adds Makefile complexity and is not validated
