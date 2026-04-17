@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "oc/app.h"
+#include "oc/calibration.h"
 #include "oc/core/periodic_core.h"
 
 namespace oc {
@@ -88,6 +89,7 @@ public:
         enable_cycle_counter();
 
         hw_.init_all();
+        calibration::initialize(hw_);
         core_.init(hw_.adc(), hw_.dac(), hw_.gpio());
         app_->init();
     }

@@ -50,6 +50,10 @@ public:
 
     uint8_t* frame_buffer() override { return current_frame_; }
 
+    void set_offset(uint8_t offset) {
+        SH1106_128x64_Driver::AdjustOffset(offset);
+    }
+
 private:
     using FrameBuf = FrameBuffer<SH1106_128x64_Driver::kFrameSize, 2>;
     using Driver   = PagedDisplayDriver<SH1106_128x64_Driver>;

@@ -8,6 +8,7 @@
 #include "spi0_init.h"
 #include "timer_teensy32.h"
 #include "storage_teensy32.h"
+#include "oc/calibration.h"
 #include "oc/hal/adc.h"
 #include "oc/hal/buttons.h"
 #include "oc/hal/dac.h"
@@ -52,6 +53,13 @@ public:
     void init_all() {
         init_base();
         init_display();
+    }
+
+    void apply_calibration(const oc::calibration::CalibrationData& calibration_data) {
+        for (size_t i = 0; i < oc::calibration::kAdcChannelCount; ++i) {
+            adc_.set_calibration_offset(i, calibration_data.adc.offset[i]);
+        }
+        display_.set_offset(calibration_data.display_offset);
     }
 
     hal::ADCInterface*      adc()      { return &adc_;      }

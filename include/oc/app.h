@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include "oc/calibration.h"
 #include "oc/hal/display.h"
 
 /// oc-core: User Application Interface
@@ -73,21 +74,16 @@ struct AudioOut {
     /// Maps to 0–10V on the O&C hardware (after calibration).
     std::array<uint16_t, 4> cv;
 
-    /// Set a channel by voltage (-3V to +6V).
-    ///
-    /// kZeroVoltCode and kCodesPerVolt are derived from the default O&C
-    /// calibration table. kZeroVoltCode may need trimming per-board —
-    /// run the O&C calibration to get accurate values, or adjust empirically:
-    ///   measured_error_volts * kCodesPerVolt → add to kZeroVoltCode.
-    ///
-    /// Default (theoretical):  kZeroVoltCode = 19661
-    /// Empirical trim example: measured 0V→-0.75V, so +4915 → 24576
-    ///
-    /// Do NOT call from audio_callback() on Teensy 3.2 — software float
-    /// is too slow for the 100µs ISR budget.
-    void set_cv(uint8_t ch, float volts,
-                float zero_code = 19661.0f,
-                float codes_per_volt = 6553.5f) {
+    /// Set a channel by calibrated voltage (-3V to +6V).
+    /// Uses the persisted DAC calibration table loaded at startup.
+    void set_cv(uint8_t ch, float volts) {
+        cv[ch] = calibration::volts_to_dac(ch, volts);
+    }
+
+    /// Set a channel by voltage using explicit linear conversion constants.
+    /// This bypasses the persisted calibration table and is kept for tests,
+    /// experiments, and manual bring-up.
+    void set_cv(uint8_t ch, float volts, float zero_code, float codes_per_volt) {
         const float raw = zero_code + volts * codes_per_volt;
         if (raw <= 0.0f)     { cv[ch] = 0;     return; }
         if (raw >= 65535.0f) { cv[ch] = 65535; return; }
