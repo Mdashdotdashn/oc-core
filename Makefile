@@ -13,15 +13,21 @@ ifeq ($(OS),Windows_NT)
   RM_RF       := rm -rf
   NULL        := /dev/null
   HAVE_CMD     = command -v $(1) >$(NULL) 2>&1
+  # On Windows, pio.exe is installed in the Python Scripts dir which may not
+  # be on PATH in Git Bash.  The Windows Python Launcher (py.exe) lives at
+  # C:\Windows\py.exe and is always on PATH in every shell (Git Bash,
+  # PowerShell, cmd.exe), so it is the most reliable invocation.
+  PIO_DEFAULT  := py -3 -m platformio
 else
   DETECTED_OS := $(shell uname -s)
   RM_RF       := rm -rf
   NULL        := /dev/null
   HAVE_CMD     = command -v $(1) >$(NULL) 2>&1
+  PIO_DEFAULT  := pio
 endif
 # -----------------------------------------------------------------------------
 
-PIO           ?= pio
+PIO           ?= $(PIO_DEFAULT)
 ARDUINO_CLI   ?= arduino-cli
 TEENSY_LOADER := teensy_loader_cli
 FQBN          ?= teensy:avr:teensy31:usb=serialmidi,speed=72,opt=osstd,keys=en-us
@@ -42,7 +48,7 @@ EXAMPLE ?= lfo
 all: auto-build
 
 auto-build:
-	@if $(call HAVE_CMD,$(PIO)); then \
+	@if $(PIO) --version >$(NULL) 2>&1; then \
 	  echo "Using PlatformIO..."; \
 	  $(MAKE) pio-build; \
 	else \
@@ -88,8 +94,8 @@ clean:
 # ============================================================================
 
 check-pio:
-	@$(call HAVE_CMD,$(PIO)) || \
-	  (echo "ERROR: $(PIO) not found in PATH" && \
+	@$(PIO) --version >$(NULL) 2>&1 || \
+	  (echo "ERROR: '$(PIO)' not found or not working" && \
 	   echo "Install PlatformIO: pipx install platformio" && \
 	   exit 1)
 
