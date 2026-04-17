@@ -10,9 +10,9 @@
 # ---- OS detection -----------------------------------------------------------
 ifeq ($(OS),Windows_NT)
   DETECTED_OS := Windows
-  RM_RF       := rd /s /q
-  NULL        := nul
-  HAVE_CMD     = where $(1) >$(NULL) 2>&1
+  RM_RF       := rm -rf
+  NULL        := /dev/null
+  HAVE_CMD     = command -v $(1) >$(NULL) 2>&1
 else
   DETECTED_OS := $(shell uname -s)
   RM_RF       := rm -rf
