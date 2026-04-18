@@ -177,21 +177,33 @@ Guidance:
 
 ## Suggested Directory Layout
 
-Follow the Teensy layout as closely as possible:
+Follow the existing Teensy layout as closely as possible:
 
 ```text
-src/platforms/<platform>/
-├── all.h
-├── platform.h
-├── adc_<platform>.h/cpp
-├── buttons_<platform>.h/cpp
-├── dac_<platform>.h/cpp
-├── display_<platform>.h
-├── encoders_<platform>.h/cpp
-├── gpio_<platform>.h/cpp
-├── timer_<platform>.h/cpp
-├── storage_<platform>.h/cpp
-└── drivers/
+platform/
+├── include/
+│   ├── all.h
+│   ├── platform.h
+│   ├── adc.h
+│   ├── buttons.h
+│   ├── dac.h
+│   ├── display.h
+│   ├── encoders.h
+│   ├── gpio.h
+│   ├── timer.h
+│   ├── storage.h
+│   └── drivers/
+│       └── (display driver headers)
+└── src/
+    ├── adc.cpp
+    ├── buttons.cpp
+    ├── dac.cpp
+    ├── encoders.cpp
+    ├── gpio.cpp
+    ├── timer.cpp
+    ├── storage.cpp
+    └── drivers/
+        └── (display driver sources)
 ```
 
 That keeps example entrypoints simple and makes platform diffs easier to read.

@@ -1,4 +1,4 @@
-#include "platforms/all.h"
+#include "all.h"
 #include "adc_calibration.h"
 
 using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;

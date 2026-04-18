@@ -4,7 +4,7 @@
 /// The ISR handles DMA page transfers (flush + update).
 /// idle() renders the frame via weegfx.
 
-#include "platforms/all.h"
+#include "all.h"
 #include "display_test.h"
 #include <Arduino.h>
 

@@ -26,7 +26,7 @@ public:
 
 ```cpp
 // main.cpp — boilerplate, change only the algorithm type
-#include "platforms/all.h"
+#include "all.h"
 #include "my_algorithm.h"
 
 using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
@@ -76,8 +76,8 @@ More detailed documentation now lives under `docs/`:
 
 ```text
 oc-core/
-├── include/oc/              public app and HAL headers
-├── src/                     Teensy 3.2 implementation
+├── core/                    public headers + framework sources
+├── platform/                Teensy 3.2 HAL headers + sources + drivers
 ├── examples/                standalone PlatformIO example projects
 └── docs/                    long-form architecture and project notes
 ```

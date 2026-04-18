@@ -32,7 +32,7 @@ public:
 ## Basic Entrypoint
 
 ```cpp
-#include "platforms/all.h"
+#include "all.h"
 #include "my_algorithm.h"
 
 using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
