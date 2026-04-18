@@ -12,7 +12,7 @@
 
 namespace oc::platform::teensy32 {
 
-class ButtonsImpl : public hal::ButtonsInterface {
+class ButtonsImpl final : public hal::ButtonsInterface {
 public:
     void init();
 

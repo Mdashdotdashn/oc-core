@@ -58,6 +58,33 @@ Display bring-up result:
 ## Documentation And Polish
 
 - public API doc comments added on the main interfaces
+
+## Phase 5: ISR Devirtualization
+
+Goal: eliminate virtual dispatch from the 10 kHz ISR hot path.
+
+Changes made (branch `no-virtual`):
+
+| Change | Effect |
+|--------|--------|
+| All 6 concrete impl classes marked `final` | Enables compiler devirtualization on any concrete-pointer call |
+| `HardwarePlatform` gains `*_impl()` concrete-reference accessors and `AType`/`GType`/… type aliases | Exposes concrete types to `Runtime` and `PeriodicCore` |
+| `PeriodicCore<Adc, Gpio>` converted to fully inline template | 15 vtable dispatches in `isr_cycle()` → 0; tiny getters inline to array loads |
+| `Runtime::isr()` and `ui_service()` use `*_impl()` accessors throughout | All ISR HAL calls go through concrete types |
+| `AudioIn` marshal: removed `{}` zero-init + element loops → direct `std::array` assignment + single `ui_mask` bitwise gate | Eliminates ~80-byte memset and per-field conditional branches |
+
+Measured ISR profile at 10 kHz on Teensy 3.2 (72 MHz), idle app:
+
+| Bucket | Before | After |
+|--------|--------|-------|
+| TOT | 32 µs | 28 µs |
+| SCN | 11 µs | 9 µs |
+| MRS | 5 µs | 3 µs |
+| DSP | 6 µs | 6 µs (SPI hardware-bound) |
+| DAC | 8 µs | 8 µs (SPI hardware-bound) |
+
+ISR load with idle app: **28%** of the 100 µs budget.
+Remaining virtual call in the hot path: `Application::audio_callback()` (one per ISR, intentional).
 - runtime facade introduced to centralize sequencing
 - app-facing `main_loop()` renamed to `idle()`
 - long-form project notes moved under `docs/`

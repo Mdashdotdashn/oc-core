@@ -9,7 +9,7 @@
 
 namespace oc::platform::teensy32 {
 
-class DACImpl : public hal::DACInterface {
+class DACImpl final : public hal::DACInterface {
 public:
     DACImpl();
 

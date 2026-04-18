@@ -13,19 +13,35 @@
 └────────────────────────┬────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│  Framework  (oc::Runtime + oc::core::PeriodicCore)      │
-│  • Runtime       owns ISR ordering and app dispatch     │
-│  • isr_cycle()   scans ADC + GPIO into CoreState        │
-│  • get_state()   exposes CoreState to Runtime           │
+│  oc::Runtime<Platform>  (include/oc/runtime.h)          │
+│  • owns ISR ordering and app dispatch                   │
+│  • calls platform concrete methods directly (no vtable) │
+│  • holds PeriodicCore<ADCImpl, GPIOImpl>                │
 └───────┬──────────┬───────────┬──────────────────────────┘
         │          │           │
-   ADCInterface  DACInterface  GPIOInterface
+   ADCImpl      DACImpl     GPIOImpl      (concrete, final)
         │          │           │
 ┌───────▼──────────▼───────────▼──────────────────────────┐
 │  Teensy 3.2 Platform  (src/platforms/teensy32/)         │
-│  ADCImpl / DACImpl / GPIOImpl / TimerImpl / StorageImpl │
+│  HardwarePlatform  owns concrete impl instances         │
+│  adc_impl() / dac_impl() / gpio_impl() / …             │
+│  — plus interface-pointer accessors for non-ISR code    │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Virtual dispatch policy
+
+HAL interfaces (`ADCInterface`, `DACInterface`, etc.) still exist and are used:
+
+- by calibration code, examples, and any non-ISR code that doesn't need to be overhead-free
+- via the interface-pointer accessors on `HardwarePlatform` (`adc()`, `dac()`, …)
+
+The ISR path uses **zero virtual dispatch**:
+
+- All six concrete impl classes are marked `final`.
+- `PeriodicCore<Adc, Gpio>` is a fully inline template; it holds concrete pointers and all calls resolve statically.
+- `Runtime::isr()` and `ui_service()` use the `*_impl()` concrete-reference accessors on `HardwarePlatform`.
+- The `Application::audio_callback()` virtual call is the only remaining vtable dispatch in the hot path (one call per ISR, unavoidable without also templating the app).
 
 ## Repository Layout
 
@@ -43,13 +59,13 @@ oc-core/
 │   │   ├── timer.h
 │   │   └── storage.h
 │   └── core/
-│       └── periodic_core.h
+│       └── periodic_core.h      ← fully inline template, no .cpp
 ├── src/
 │   ├── core/
-│   │   └── periodic_core.cpp
+│   │   └── periodic_core.cpp    ← empty stub (template is header-only)
 │   └── platforms/
 │       └── teensy32/
-│           ├── platform.h
+│           ├── platform.h       ← HardwarePlatform with *_impl() accessors
 │           ├── all.h
 │           ├── adc_teensy32.h/cpp
 │           ├── buttons_teensy32.h/cpp

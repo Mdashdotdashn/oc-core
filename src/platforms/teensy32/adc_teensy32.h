@@ -10,7 +10,7 @@
 
 namespace oc::platform::teensy32 {
 
-class ADCImpl : public hal::ADCInterface {
+class ADCImpl final : public hal::ADCInterface {
 public:
     ADCImpl();
 

@@ -35,6 +35,15 @@ namespace oc::platform::teensy32 {
 
 class HardwarePlatform {
 public:
+    // Concrete type aliases for zero-overhead static dispatch in Runtime/PeriodicCore.
+    using AType    = ADCImpl;
+    using DType    = DACImpl;
+    using GType    = GPIOImpl;
+    using BType    = ButtonsImpl;
+    using EType    = EncodersImpl;
+    using DispType = DisplayImpl;
+
+public:
     void init_base() {
         // SPI0 bus (shared by DAC and OLED) must be initialized before either device.
         // Sets MOSI/SCK drive strength, CTAR0 (8-bit) and CTAR1 (16-bit) at 18 MHz.
@@ -70,6 +79,15 @@ public:
     hal::DisplayInterface*  display()  { return &display_;  }
     hal::TimerInterface*    timer()    { return &timer_;    }
     hal::StorageInterface*  storage()  { return &storage_;  }
+
+    // Concrete-type accessors — use these from the ISR/Runtime for zero virtual overhead.
+    ADCImpl&      adc_impl()      { return adc_;      }
+    DACImpl&      dac_impl()      { return dac_;      }
+    GPIOImpl&     gpio_impl()     { return gpio_;     }
+    ButtonsImpl&  buttons_impl()  { return buttons_;  }
+    EncodersImpl& encoders_impl() { return encoders_; }
+    DisplayImpl&  display_impl()  { return display_;  }
+
 
 private:
     ADCImpl      adc_;

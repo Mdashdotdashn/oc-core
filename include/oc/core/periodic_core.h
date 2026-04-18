@@ -1,15 +1,13 @@
 #pragma once
 #include <cstdint>
 #include <array>
-#include "oc/hal/adc.h"
-#include "oc/hal/dac.h"
-#include "oc/hal/gpio.h"
 
 /// oc-core: PeriodicCore
 ///
 /// Coordinates the hardware scan and state capture for each ISR cycle.
 /// Not user-facing — the user interacts with AudioIn/AudioOut in audio_callback().
 ///
+/// Templated on concrete ADC and GPIO types to eliminate virtual dispatch in the ISR.
 /// Call isr_cycle() at the top of every audio ISR. It scans ADC and GPIO,
 /// then populates the internal CoreState. The audio ISR reads the state
 /// via get_state() to build the AudioIn buffer before calling audio_callback().
@@ -30,20 +28,35 @@ struct CoreState {
 };
 
 /// Lightweight coordinator between HAL devices and the audio ISR.
-/// Holds pointers to the three input/output HAL devices registered at init().
+/// Adc and Gpio must be concrete (final) types — no virtual dispatch occurs.
+template <typename Adc, typename Gpio>
 class PeriodicCore {
 public:
-    PeriodicCore();
+    PeriodicCore() = default;
 
-    /// Register HAL device implementations.
+    /// Register concrete HAL device implementations.
     /// Must be called from main() before starting the timer.
-    void init(hal::ADCInterface* adc,
-              hal::DACInterface* dac,
-              hal::GPIOInterface* gpio);
+    void init(Adc* adc, Gpio* gpio) {
+        adc_  = adc;
+        gpio_ = gpio;
+        state_ = {};
+    }
 
     /// Advance one audio cycle: scan ADC + GPIO, update CoreState, increment tick.
-    /// Call this at the very start of the audio ISR callback.
-    void isr_cycle();
+    /// All calls here resolve statically — no vtable lookup.
+    void isr_cycle() {
+        adc_->scan();
+        gpio_->scan();
+
+        for (int i = 0; i < 4; ++i) {
+            state_.inputs.cv[i]     = adc_->get_calibrated(i);
+            state_.inputs.cv_raw[i] = adc_->get_smoothed(i);
+            state_.inputs.gate[i]   = gpio_->read_input(i);
+        }
+        state_.inputs.edges = gpio_->get_edge_mask();
+
+        ++state_.tick;
+    }
 
     /// Access the most recently captured hardware state.
     /// Safe to read from the audio ISR after isr_cycle() returns.
@@ -52,11 +65,11 @@ public:
     uint32_t ticks() const { return state_.tick; }
 
 private:
-    hal::ADCInterface* adc_  = nullptr;
-    hal::DACInterface* dac_  = nullptr;
-    hal::GPIOInterface* gpio_ = nullptr;
+    Adc*  adc_  = nullptr;
+    Gpio* gpio_ = nullptr;
 
     CoreState state_{};
 };
 
 } // namespace oc::core
+

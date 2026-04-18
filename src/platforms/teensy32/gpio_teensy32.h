@@ -8,7 +8,7 @@
 
 namespace oc::platform::teensy32 {
 
-class GPIOImpl : public hal::GPIOInterface {
+class GPIOImpl final : public hal::GPIOInterface {
 public:
     GPIOImpl();
 

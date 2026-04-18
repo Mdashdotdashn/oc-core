@@ -12,7 +12,7 @@
 
 namespace oc::platform::teensy32 {
 
-class DisplayImpl : public hal::DisplayInterface {
+class DisplayImpl final : public hal::DisplayInterface {
 public:
     void init() {
         frame_buf_.Init();

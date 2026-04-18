@@ -17,7 +17,7 @@
 
 namespace oc::platform::teensy32 {
 
-class EncodersImpl : public hal::EncodersInterface {
+class EncodersImpl final : public hal::EncodersInterface {
 public:
     void init();
 
