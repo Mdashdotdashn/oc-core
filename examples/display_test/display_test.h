@@ -1,6 +1,5 @@
 #pragma once
 #include "oc/app.h"
-#include "oc/hal/display.h"
 #include "drivers/weegfx.h"
 
 /// DisplayTest — shows live encoder and button state on the OLED.
@@ -30,7 +29,7 @@ public:
 
     void idle() override { /* drawing happens in draw() called from main */ }
 
-    void draw(oc::hal::DisplayInterface* display) override {
+    void draw(oc::Display* display) override {
         if (!display->begin_frame()) return;
 
         gfx_.Begin(display->frame_buffer(), true);  // true = clear before drawing

@@ -1,5 +1,4 @@
 #pragma once
-#include "oc/hal/adc.h"
 #include <cstdint>
 #include <array>
 
@@ -10,16 +9,16 @@
 
 namespace oc::platform::teensy32 {
 
-class ADCImpl final : public hal::ADCInterface {
+class ADCImpl final {
 public:
     ADCImpl();
 
     void init();
 
-    void     scan()                          override;
-    uint32_t read_raw(uint8_t ch)      const override;
-    uint32_t get_smoothed(uint8_t ch)  const override;
-    int32_t  get_calibrated(uint8_t ch) const override;
+    void     scan();
+    uint32_t read_raw(uint8_t ch)      const;
+    uint32_t get_smoothed(uint8_t ch)  const;
+    int32_t  get_calibrated(uint8_t ch) const;
 
     void set_calibration_offset(uint8_t channel, uint16_t offset);
 

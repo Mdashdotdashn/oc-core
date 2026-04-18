@@ -1,6 +1,11 @@
 #pragma once
-#include "oc/hal/buttons.h"
 #include <cstdint>
+
+struct ButtonEvent {
+    bool pressed;
+    bool just_pressed;
+    bool just_released;
+};
 
 /// Teensy 3.2 button implementation.
 /// Reads 2 front-panel push-buttons using 8-bit shift-register debounce
@@ -12,16 +17,18 @@
 
 namespace oc::platform::teensy32 {
 
-class ButtonsImpl final : public hal::ButtonsInterface {
+class ButtonsImpl final {
 public:
+    static constexpr int kCount = 2;
+
     void init();
 
     /// Poll all button pins and advance shift registers.
     /// Must be called at a fixed rate from the ISR or a UI timer.
-    void scan() override;
+    void scan();
 
     /// Return debounced event for button idx (0=UP, 1=DOWN).
-    hal::ButtonEvent get(uint8_t idx) const override;
+    ButtonEvent get(uint8_t idx) const;
 
 private:
     // Physical pins: UP=5, DOWN=4 (active-low, INPUT_PULLUP)

@@ -2,7 +2,9 @@
 #include <cstdint>
 #include <array>
 #include "oc/calibration.h"
-#include "oc/hal/display.h"
+
+// Forward-declare the concrete display type (full definition comes from platform.h).
+namespace oc::platform::teensy32 { class DisplayImpl; }
 
 /// oc-core: User Application Interface
 ///
@@ -26,6 +28,9 @@
 ///   };
 
 namespace oc {
+
+/// Concrete display type alias — use this in draw() overrides.
+using Display = platform::teensy32::DisplayImpl;
 
 /// Debounced state of a single button for one ISR cycle.
 /// just_pressed / just_released fire for exactly one cycle on edge transitions.
@@ -118,7 +123,7 @@ public:
 
     /// Optional OLED drawing hook, called from the background loop.
     /// Default implementation does nothing.
-    virtual void draw(hal::DisplayInterface* /*display*/) {}
+    virtual void draw(Display* /*display*/) {}
 
     /// Called when the system is shutting down cleanly.
     virtual void shutdown() {}

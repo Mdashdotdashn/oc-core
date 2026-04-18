@@ -1,4 +1,5 @@
 #include "oc/calibration.h"
+#include "platforms/teensy32/storage_teensy32.h"
 
 namespace oc::calibration {
 
@@ -58,13 +59,13 @@ void reset_to_defaults() {
     current_data = make_default_data();
 }
 
-bool load(hal::StorageInterface* storage) {
-    if (!storage || storage->capacity() < sizeof(CalibrationData)) {
+bool load(platform::teensy32::StorageImpl& storage) {
+    if (storage.capacity() < sizeof(CalibrationData)) {
         return false;
     }
 
     CalibrationData persisted{};
-    storage->read(kStorageAddress, &persisted, sizeof(persisted));
+    storage.read(kStorageAddress, &persisted, sizeof(persisted));
     if (!is_valid(persisted)) {
         return false;
     }
@@ -73,15 +74,15 @@ bool load(hal::StorageInterface* storage) {
     return true;
 }
 
-bool save(hal::StorageInterface* storage) {
-    if (!storage || storage->capacity() < sizeof(CalibrationData)) {
+bool save(platform::teensy32::StorageImpl& storage) {
+    if (storage.capacity() < sizeof(CalibrationData)) {
         return false;
     }
 
     current_data.magic = kMagic;
     current_data.version = kVersion;
     current_data.size = sizeof(CalibrationData);
-    storage->write(kStorageAddress, &current_data, sizeof(current_data));
+    storage.write(kStorageAddress, &current_data, sizeof(current_data));
     return true;
 }
 

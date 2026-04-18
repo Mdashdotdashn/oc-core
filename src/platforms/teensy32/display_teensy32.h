@@ -1,5 +1,4 @@
 #pragma once
-#include "oc/hal/display.h"
 #include "drivers/SH1106_128x64_driver.h"
 #include "drivers/framebuffer.h"
 #include "drivers/page_display_driver.h"
@@ -12,7 +11,7 @@
 
 namespace oc::platform::teensy32 {
 
-class DisplayImpl final : public hal::DisplayInterface {
+class DisplayImpl final {
 public:
     void init() {
         frame_buf_.Init();
@@ -20,13 +19,13 @@ public:
     }
 
     /// ISR: finish previous DMA page transfer.
-    void flush() override {
+    void flush() {
         if (driver_.Flush())
             frame_buf_.read();
     }
 
     /// ISR: start next DMA page transfer if a rendered frame is available.
-    void update() override {
+    void update() {
         if (driver_.frame_valid()) {
             driver_.Update();
         } else if (frame_buf_.readable()) {
@@ -35,20 +34,20 @@ public:
     }
 
     /// idle: acquire a writable framebuffer.
-    bool begin_frame() override {
+    bool begin_frame() {
         current_frame_ = frame_buf_.writeable() ? frame_buf_.writeable_frame() : nullptr;
         return current_frame_ != nullptr;
     }
 
     /// idle: submit the rendered frame for DMA transfer.
-    void end_frame() override {
+    void end_frame() {
         if (current_frame_) {
             frame_buf_.written();
             current_frame_ = nullptr;
         }
     }
 
-    uint8_t* frame_buffer() override { return current_frame_; }
+    uint8_t* frame_buffer() { return current_frame_; }
 
     void set_offset(uint8_t offset) {
         SH1106_128x64_Driver::AdjustOffset(offset);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "oc/app.h"
-#include "oc/hal/display.h"
 #include "drivers/weegfx.h"
 
 /// TriggerTest — shows the 4 gate inputs and counts rising edges.
@@ -35,7 +34,7 @@ public:
         }
     }
 
-    void draw(oc::hal::DisplayInterface* display) override {
+    void draw(oc::Display* display) override {
         if (!display->begin_frame()) {
             return;
         }

@@ -38,7 +38,7 @@ void EncodersImpl::scan() {
     }
 }
 
-hal::EncoderEvent EncodersImpl::get(uint8_t idx) const {
+EncoderEvent EncodersImpl::get(uint8_t idx) const {
     const auto& e = enc_[idx];
     const uint8_t sw = e.state_sw;
     return {

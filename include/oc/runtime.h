@@ -103,20 +103,20 @@ public:
     void start(uint32_t interval_us) {
         core_interval_us_ = interval_us;
         reset_profiling();
-        hw_.timer()->start(interval_us, isr_trampoline);
+        hw_.timer_impl().start(interval_us, isr_trampoline);
         if (ui_interval_us_ > 0) {
-            hw_.timer()->start_ui(ui_interval_us_, ui_trampoline);
+            hw_.timer_impl().start_ui(ui_interval_us_, ui_trampoline);
         }
     }
 
     void stop() {
-        hw_.timer()->stop();
-        hw_.timer()->stop_ui();
+        hw_.timer_impl().stop();
+        hw_.timer_impl().stop_ui();
     }
 
     void poll() {
         app_->idle();
-        app_->draw(hw_.display());
+        app_->draw(&hw_.display_impl());
     }
 
     Platform& hardware() { return hw_; }

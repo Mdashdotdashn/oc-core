@@ -1,5 +1,4 @@
 #pragma once
-#include "oc/hal/dac.h"
 #include <cstdint>
 #include <array>
 
@@ -9,16 +8,16 @@
 
 namespace oc::platform::teensy32 {
 
-class DACImpl final : public hal::DACInterface {
+class DACImpl final {
 public:
     DACImpl();
 
     void init();
 
-    void     write(uint8_t channel, uint16_t value)     override;
-    void     write_all(const uint16_t values[4])        override;
-    void     flush()                                    override;
-    uint16_t get_last_value(uint8_t channel) const      override;
+    void     write(uint8_t channel, uint16_t value);
+    void     write_all(const uint16_t values[4]);
+    void     flush();
+    uint16_t get_last_value(uint8_t channel) const;
 
 private:
     std::array<uint16_t, 4> staged_;
