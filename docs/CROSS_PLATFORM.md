@@ -25,14 +25,13 @@ any machine can pick up the work without losing context.
 
 ### macOS
 
-**Likely works without changes.**
+**Compile: verified (April 2026). Flash: pending hardware verification.**
 
-- PlatformIO CLI is available via `brew install platformio` or
-  `pipx install platformio`.
-- Teensy CLI upload tool is bundled with the PlatformIO Teensy platform.
-- The Makefile uses POSIX shell constructs that work on macOS out of the box.
-- The `uname` branch fires correctly (not the Windows `rd /s /q` branch).
-- Recommended first step: install PlatformIO and run `pio run -d examples/lfo`.
+- PlatformIO CLI installed via `brew install platformio`.
+- All examples compile cleanly with `pio run` / `make <example>`.
+- Makefile POSIX shell constructs work on macOS out of the box.
+- First flash will require the physical reset button (soft-reboot `-s` flag
+  needs running oc-core firmware already on the device).
 
 ### Windows (Git Bash)
 
@@ -96,10 +95,9 @@ Priority order:
    - Windows: install PlatformIO VS Code extension or `pip install platformio`
      under a Python that Git Bash can see; add `pio` to PATH.
 
-3. **Verify a real macOS compile+flash.** The Makefile and PlatformIO config
-   look correct but have not been tested on hardware. First flash on macOS
-   will require pressing the Teensy reset button because soft-reboot (`-s`
-   flag) requires a running oc-core firmware.
+3. **Verify a real macOS flash with hardware connected.** Compile is verified.
+   First flash will require pressing the Teensy reset button because
+   soft-reboot (`-s` flag) requires a running oc-core firmware.
 
 4. **Verify a real Windows flash with hardware connected.**
   - Compile is already verified.

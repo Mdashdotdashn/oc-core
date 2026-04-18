@@ -68,6 +68,28 @@ void draw(oc::hal::DisplayInterface* display) override {
 
 `draw()` does not talk to the OLED directly. It only fills the RAM backbuffer. The actual OLED transfer happens later inside the ISR.
 
+## Prerequisites
+
+Install PlatformIO CLI (verified on Linux, macOS, and Windows/Git Bash):
+
+**macOS**
+```bash
+brew install platformio
+```
+
+**Linux**
+```bash
+pipx install platformio
+# or
+pip3 install --user platformio
+```
+
+**Windows (Git Bash)**
+```bash
+pip install platformio   # in a Python that Git Bash can see; add pio to PATH
+# or use the PlatformIO VS Code extension
+```
+
 ## Build And Flash
 
 ```bash
@@ -76,6 +98,10 @@ pio run -t upload
 ```
 
 Each example is its own PlatformIO project.
+
+> **First flash:** if the Teensy does not have oc-core firmware already loaded,
+> soft-reboot won't work. Press the physical reset button on the board when
+> the uploader prompts for it.
 
 ## Timing Model
 
