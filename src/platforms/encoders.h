@@ -21,7 +21,7 @@ struct EncoderEvent {
 ///   RIGHT encoder: A=16, B=15, SW=14
 /// All pins: active-low, INPUT_PULLUP.
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 class EncodersImpl final {
 public:
@@ -52,4 +52,4 @@ private:
     };
 };
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

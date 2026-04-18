@@ -12,7 +12,7 @@
 #include <Arduino.h>
 #include <kinetis.h>
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 // F_BUS = 36 MHz for Teensy 3.2 at 72 MHz (F_CPU/2).
 // Rate = (36/2) * ((1+1)/2) = 18 MHz — within DAC8565 (30MHz) and SH1106 spec.
@@ -47,4 +47,4 @@ inline void spi0_init() {
     }
 }
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

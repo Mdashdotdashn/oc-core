@@ -1,4 +1,4 @@
-#include "dac_teensy32.h"
+#include "dac.h"
 #include "drivers/util_SPIFIFO.h"
 #include <Arduino.h>
 
@@ -24,7 +24,7 @@ static constexpr uint8_t kChanCmd[4] = {
     0b00010110,  // Channel D
 };
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 DACImpl::DACImpl() {
     staged_.fill(0);
@@ -75,4 +75,4 @@ uint16_t DACImpl::get_last_value(uint8_t channel) const {
     return staged_[channel];
 }
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

@@ -1,10 +1,10 @@
 /// oc-core encoder_test example — main.cpp
 
-#include "platforms/teensy32/all.h"
+#include "platforms/all.h"
 #include "encoder_test.h"
 #include <Arduino.h>
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime     runtime;
 EncoderTest app;

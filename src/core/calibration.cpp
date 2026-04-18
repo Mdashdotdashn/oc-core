@@ -1,5 +1,5 @@
 #include "oc/calibration.h"
-#include "platforms/teensy32/storage_teensy32.h"
+#include "platforms/storage.h"
 
 namespace oc::calibration {
 
@@ -59,7 +59,7 @@ void reset_to_defaults() {
     current_data = make_default_data();
 }
 
-bool load(platform::teensy32::StorageImpl& storage) {
+bool load(platform::StorageImpl& storage) {
     if (storage.capacity() < sizeof(CalibrationData)) {
         return false;
     }
@@ -74,7 +74,7 @@ bool load(platform::teensy32::StorageImpl& storage) {
     return true;
 }
 
-bool save(platform::teensy32::StorageImpl& storage) {
+bool save(platform::StorageImpl& storage) {
     if (storage.capacity() < sizeof(CalibrationData)) {
         return false;
     }

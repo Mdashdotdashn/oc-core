@@ -4,11 +4,11 @@
 /// The ISR handles DMA page transfers (flush + update).
 /// idle() renders the frame via weegfx.
 
-#include "platforms/teensy32/all.h"
+#include "platforms/all.h"
 #include "display_test.h"
 #include <Arduino.h>
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime     runtime;
 DisplayTest app;

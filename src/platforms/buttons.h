@@ -15,7 +15,7 @@ struct ButtonEvent {
 ///   UP   button → pin 5  (but_top, active-low, INPUT_PULLUP)
 ///   DOWN button → pin 4  (but_bot, active-low, INPUT_PULLUP)
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 class ButtonsImpl final {
 public:
@@ -40,4 +40,4 @@ private:
     uint8_t state_[kCount] = {0xFF, 0xFF};
 };
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

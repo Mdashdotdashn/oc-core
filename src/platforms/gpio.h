@@ -5,7 +5,7 @@
 /// Reads 4 gate inputs and detects rising edges.
 /// Pin assignments match the existing OC_digital_inputs.h (TR1–TR4).
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 class GPIOImpl final {
 public:
@@ -26,4 +26,4 @@ private:
     uint32_t edge_mask_ = 0;
 };
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

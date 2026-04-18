@@ -4,7 +4,7 @@
 #include "oc/calibration.h"
 
 // Forward-declare the concrete display type (full definition comes from platform.h).
-namespace oc::platform::teensy32 { class DisplayImpl; }
+namespace oc::platform { class DisplayImpl; }
 
 /// oc-core: User Application Interface
 ///
@@ -30,7 +30,7 @@ namespace oc::platform::teensy32 { class DisplayImpl; }
 namespace oc {
 
 /// Concrete display type alias — use this in draw() overrides.
-using Display = platform::teensy32::DisplayImpl;
+using Display = platform::DisplayImpl;
 
 /// Debounced state of a single button for one ISR cycle.
 /// just_pressed / just_released fire for exactly one cycle on edge transitions.

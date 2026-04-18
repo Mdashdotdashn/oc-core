@@ -32,10 +32,10 @@ public:
 ## Basic Entrypoint
 
 ```cpp
-#include "platforms/teensy32/all.h"
+#include "platforms/all.h"
 #include "my_algorithm.h"
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime runtime;
 MyAlgorithm app;

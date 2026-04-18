@@ -9,7 +9,7 @@
 /// cycle to DMA one page (128 bytes) to the display. A full 128×64 screen
 /// refresh therefore takes 8 ISR cycles (0.8 ms at 10 kHz).
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 class DisplayImpl final {
 public:
@@ -62,4 +62,4 @@ private:
     uint8_t*  current_frame_ = nullptr;
 };
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

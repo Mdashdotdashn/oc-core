@@ -26,10 +26,10 @@ public:
 
 ```cpp
 // main.cpp — boilerplate, change only the algorithm type
-#include "platforms/teensy32/all.h"
+#include "platforms/all.h"
 #include "my_algorithm.h"
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime     runtime;
 MyAlgorithm app;
@@ -47,7 +47,7 @@ int main() {
 The display is always present. Apps that need OLED output override `draw()`:
 
 ```cpp
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime   runtime;
 MyDisplayApp app;

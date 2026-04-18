@@ -22,7 +22,7 @@
    ADCImpl      DACImpl     GPIOImpl      (concrete, final)
         │          │           │
 ┌───────▼──────────▼───────────▼──────────────────────────┐
-│  Teensy 3.2 Platform  (src/platforms/teensy32/)         │
+│  Teensy 3.2 Platform  (src/platforms/)                 │
 │  HardwarePlatform  owns concrete impl instances         │
 │  adc_impl() / dac_impl() / gpio_impl() / …             │
 │  — plus interface-pointer accessors for non-ISR code    │
@@ -64,24 +64,23 @@ oc-core/
 │   ├── core/
 │   │   └── periodic_core.cpp    ← empty stub (template is header-only)
 │   └── platforms/
-│       └── teensy32/
-│           ├── platform.h       ← HardwarePlatform with *_impl() accessors
-│           ├── all.h
-│           ├── adc_teensy32.h/cpp
-│           ├── buttons_teensy32.h/cpp
-│           ├── dac_teensy32.h/cpp
-│           ├── display_teensy32.h
-│           ├── encoders_teensy32.h/cpp
-│           ├── gpio_teensy32.h/cpp
-│           ├── spi0_init.h
-│           ├── timer_teensy32.h/cpp
-│           ├── storage_teensy32.h/cpp
-│           └── drivers/
-│               ├── SH1106_128x64_driver.h/cpp
-│               ├── framebuffer.h
-│               ├── gfx_font_6x8.h
-│               ├── page_display_driver.h
-│               └── weegfx.h/cpp
+│       ├── platform.h       ← HardwarePlatform with *_impl() accessors
+│       ├── all.h
+│       ├── adc.h/cpp
+│       ├── buttons.h/cpp
+│       ├── dac.h/cpp
+│       ├── display.h
+│       ├── encoders.h/cpp
+│       ├── gpio.h/cpp
+│       ├── spi0_init.h
+│       ├── timer.h/cpp
+│       ├── storage.h/cpp
+│       └── drivers/
+│           ├── SH1106_128x64_driver.h/cpp
+│           ├── framebuffer.h
+│           ├── gfx_font_6x8.h
+│           ├── page_display_driver.h
+│           └── weegfx.h/cpp
 ├── examples/
 │   ├── cpu_meter/
 │   ├── lfo/

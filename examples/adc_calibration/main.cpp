@@ -1,7 +1,7 @@
-#include "platforms/teensy32/all.h"
+#include "platforms/all.h"
 #include "adc_calibration.h"
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime runtime;
 CalibrationApp<Runtime> app(runtime);

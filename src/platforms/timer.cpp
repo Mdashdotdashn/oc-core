@@ -1,7 +1,7 @@
-#include "timer_teensy32.h"
+#include "timer.h"
 #include <IntervalTimer.h>
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 namespace {
     IntervalTimer core_timer_;
@@ -26,4 +26,4 @@ void TimerImpl::stop_ui() {
     ui_timer_.end();
 }
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

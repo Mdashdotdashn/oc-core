@@ -1,7 +1,7 @@
-#include "gpio_teensy32.h"
+#include "gpio.h"
 #include <Arduino.h>   // digitalReadFast
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 GPIOImpl::GPIOImpl() = default;
 
@@ -32,4 +32,4 @@ uint32_t GPIOImpl::get_edge_mask() const {
     return edge_mask_;
 }
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

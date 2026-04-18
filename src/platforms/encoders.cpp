@@ -1,7 +1,7 @@
-#include "encoders_teensy32.h"
+#include "encoders.h"
 #include <Arduino.h>  // pinMode, digitalReadFast
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 void EncodersImpl::init() {
     for (auto& e : enc_) {
@@ -49,4 +49,4 @@ EncoderEvent EncodersImpl::get(uint8_t idx) const {
     };
 }
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

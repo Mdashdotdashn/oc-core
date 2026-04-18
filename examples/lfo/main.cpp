@@ -4,7 +4,7 @@
 /// on Teensy 3.6 hardware. To write your own algorithm, replace
 /// SimpleLFO with your own Application subclass.
 
-#include "platforms/teensy32/all.h"
+#include "platforms/all.h"
 #include "simple_lfo.h"
 #include <Arduino.h>
 
@@ -17,7 +17,7 @@ static constexpr uint8_t kTimingPin = 24;
 // Global instances — same pattern as Daisy examples
 // ---------------------------------------------------------------------------
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
 
 Runtime   runtime;
 SimpleLFO app;

@@ -25,11 +25,11 @@
 
 | File | Status | Source material |
 |------|--------|-----------------|
-| `adc_teensy32.cpp` | done | `ArticCircle/OC_ADC.cpp` |
-| `dac_teensy32.cpp` | done | `ArticCircle/OC_DAC.cpp` |
-| `gpio_teensy32.cpp` | done | `ArticCircle/OC_gpio.h` |
-| `timer_teensy32.cpp` | done | `ArticCircle/ArticCircle.ino` |
-| `storage_teensy32.cpp` | done | standard EEPROM |
+| `adc.cpp` | done | `ArticCircle/OC_ADC.cpp` |
+| `dac.cpp` | done | `ArticCircle/OC_DAC.cpp` |
+| `gpio.cpp` | done | `ArticCircle/OC_gpio.h` |
+| `timer.cpp` | done | `ArticCircle/ArticCircle.ino` |
+| `storage.cpp` | done | standard EEPROM |
 
 ### Phase 3: UI And Display Integration
 

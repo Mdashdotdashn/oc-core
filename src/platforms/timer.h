@@ -6,7 +6,7 @@ using ISRHandler = void (*)();
 /// Teensy 3.6 Timer implementation.
 /// Wraps Teensy's IntervalTimer to register the audio ISR callback.
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 class TimerImpl final {
 public:
@@ -16,4 +16,4 @@ public:
     void stop_ui();
 };
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform

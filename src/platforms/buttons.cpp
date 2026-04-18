@@ -1,7 +1,7 @@
-#include "buttons_teensy32.h"
+#include "buttons.h"
 #include <Arduino.h>  // pinMode, INPUT_PULLUP, digitalReadFast
 
-namespace oc::platform::teensy32 {
+namespace oc::platform {
 
 void ButtonsImpl::init() {
     for (int i = 0; i < kCount; ++i) {
@@ -27,4 +27,4 @@ ButtonEvent ButtonsImpl::get(uint8_t idx) const {
     };
 }
 
-} // namespace oc::platform::teensy32
+} // namespace oc::platform
