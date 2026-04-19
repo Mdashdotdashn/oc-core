@@ -35,7 +35,7 @@ public:
 #include "platform/all.h"
 #include "my_algorithm.h"
 
-using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime runtime;
 MyAlgorithm app;

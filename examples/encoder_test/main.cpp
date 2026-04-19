@@ -4,7 +4,7 @@
 #include "encoder_test.h"
 #include <Arduino.h>
 
-using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime     runtime;
 EncoderTest app;

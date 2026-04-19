@@ -23,17 +23,17 @@
 ///   audio.init(hw.adc(), hw.dac(), hw.gpio());
 ///   hw.timer().start(100, my_isr);
 
-namespace oc::platform {
+namespace platform {
 
 class HardwarePlatform {
 public:
     // Concrete type aliases for zero-overhead static dispatch in Runtime/PeriodicCore.
-    using AType    = ADCImpl;
-    using DType    = DACImpl;
-    using GType    = GPIOImpl;
-    using BType    = ButtonsImpl;
-    using EType    = EncodersImpl;
-    using DispType = DisplayImpl;
+    using AType    = ADC;
+    using DType    = DAC;
+    using GType    = GPIO;
+    using BType    = Buttons;
+    using EType    = Encoders;
+    using DispType = Display;
 
 public:
     void init_base() {
@@ -63,25 +63,25 @@ public:
         display_.set_offset(calibration_data.display_offset);
     }
 
-    ADCImpl&      adc_impl()      { return adc_;      }
-    DACImpl&      dac_impl()      { return dac_;      }
-    GPIOImpl&     gpio_impl()     { return gpio_;     }
-    ButtonsImpl&  buttons_impl()  { return buttons_;  }
-    EncodersImpl& encoders_impl() { return encoders_; }
-    DisplayImpl&  display_impl()  { return display_;  }
-    TimerImpl&    timer_impl()    { return timer_;    }
-    StorageImpl&  storage_impl()  { return storage_;  }
+    ADC&      adc_impl()      { return adc_;      }
+    DAC&      dac_impl()      { return dac_;      }
+    GPIO&     gpio_impl()     { return gpio_;     }
+    Buttons&  buttons_impl()  { return buttons_;  }
+    Encoders& encoders_impl() { return encoders_; }
+    Display&  display_impl()  { return display_;  }
+    Timer&    timer_impl()    { return timer_;    }
+    Storage&  storage_impl()  { return storage_;  }
 
 
 private:
-    ADCImpl      adc_;
-    DACImpl      dac_;
-    GPIOImpl     gpio_;
-    ButtonsImpl  buttons_;
-    EncodersImpl encoders_;
-    DisplayImpl  display_;
-    TimerImpl    timer_;
-    StorageImpl  storage_;
+    ADC      adc_;
+    DAC      dac_;
+    GPIO     gpio_;
+    Buttons  buttons_;
+    Encoders encoders_;
+    Display  display_;
+    Timer    timer_;
+    Storage  storage_;
 };
 
-} // namespace oc::platform
+} // namespace platform

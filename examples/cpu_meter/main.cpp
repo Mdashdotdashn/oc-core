@@ -1,7 +1,7 @@
 #include "platform/all.h"
 #include "cpu_meter.h"
 
-using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime runtime;
 CpuMeter<Runtime> app(runtime);

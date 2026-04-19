@@ -17,7 +17,7 @@ static constexpr uint8_t kTimingPin = 24;
 // Global instances — same pattern as Daisy examples
 // ---------------------------------------------------------------------------
 
-using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime   runtime;
 SimpleLFO app;

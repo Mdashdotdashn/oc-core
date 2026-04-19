@@ -1,13 +1,13 @@
 #include "platform/adc.h"
 #include <ADC.h>   // Teensy ADC library
 
-namespace oc::platform {
+namespace platform {
 
 namespace {
-    ADC adc_obj_;
+    ::ADC adc_obj_;
 }
 
-ADCImpl::ADCImpl() {
+ADC::ADC() {
     raw_.fill(0);
     smoothed_accumulator_.fill(0);
     smoothed_value_.fill(0);
@@ -15,7 +15,7 @@ ADCImpl::ADCImpl() {
     offsets_.fill(0);
 }
 
-void ADCImpl::init() {
+void ADC::init() {
     adc_obj_.adc0->setAveraging(4);
     adc_obj_.adc0->setResolution(12);
     adc_obj_.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::HIGH_SPEED);
@@ -24,7 +24,7 @@ void ADCImpl::init() {
     adc_obj_.startSingleRead(kPins[0], ADC_0);
 }
 
-void ADCImpl::scan() {
+void ADC::scan() {
     // Read the result of the previous conversion
     if (adc_obj_.adc0->isComplete()) {
         const uint32_t raw = static_cast<uint32_t>(adc_obj_.readSingle(ADC_0));
@@ -45,21 +45,21 @@ void ADCImpl::scan() {
     adc_obj_.startSingleRead(kPins[current_channel_], ADC_0);
 }
 
-uint32_t ADCImpl::read_raw(uint8_t ch) const {
+uint32_t ADC::read_raw(uint8_t ch) const {
     return raw_[ch];
 }
 
-uint32_t ADCImpl::get_smoothed(uint8_t ch) const {
+uint32_t ADC::get_smoothed(uint8_t ch) const {
     return smoothed_value_[ch];
 }
 
-int32_t ADCImpl::get_calibrated(uint8_t ch) const {
+int32_t ADC::get_calibrated(uint8_t ch) const {
     return calibrated_[ch];
 }
 
-void ADCImpl::set_calibration_offset(uint8_t channel, uint16_t offset) {
+void ADC::set_calibration_offset(uint8_t channel, uint16_t offset) {
     offsets_[channel] = offset;
     calibrated_[channel] = static_cast<int32_t>(offset) - static_cast<int32_t>(smoothed_value_[channel]);
 }
 
-} // namespace oc::platform
+} // namespace platform

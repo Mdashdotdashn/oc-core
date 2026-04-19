@@ -1,9 +1,9 @@
 #include "platform/encoders.h"
 #include <Arduino.h>  // pinMode, digitalReadFast
 
-namespace oc::platform {
+namespace platform {
 
-void EncodersImpl::init() {
+void Encoders::init() {
     for (auto& e : enc_) {
         pinMode(e.pin_a,  INPUT_PULLUP);
         pinMode(e.pin_b,  INPUT_PULLUP);
@@ -15,7 +15,7 @@ void EncodersImpl::init() {
     }
 }
 
-void EncodersImpl::scan() {
+void Encoders::scan() {
     for (auto& e : enc_) {
         // Advance 8-bit shift registers for both quadrature pins
         e.state_a = (e.state_a << 1) | digitalReadFast(e.pin_a);
@@ -38,7 +38,7 @@ void EncodersImpl::scan() {
     }
 }
 
-EncoderEvent EncodersImpl::get(uint8_t idx) const {
+EncoderEvent Encoders::get(uint8_t idx) const {
     const auto& e = enc_[idx];
     const uint8_t sw = e.state_sw;
     return {
@@ -49,4 +49,4 @@ EncoderEvent EncodersImpl::get(uint8_t idx) const {
     };
 }
 
-} // namespace oc::platform
+} // namespace platform

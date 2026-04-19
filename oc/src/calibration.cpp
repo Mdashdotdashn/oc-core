@@ -59,7 +59,7 @@ void reset_to_defaults() {
     current_data = make_default_data();
 }
 
-bool load(platform::StorageImpl& storage) {
+bool load(platform::Storage& storage) {
     if (storage.capacity() < sizeof(CalibrationData)) {
         return false;
     }
@@ -74,7 +74,7 @@ bool load(platform::StorageImpl& storage) {
     return true;
 }
 
-bool save(platform::StorageImpl& storage) {
+bool save(platform::Storage& storage) {
     if (storage.capacity() < sizeof(CalibrationData)) {
         return false;
     }

@@ -1,7 +1,7 @@
 #include "platform/all.h"
 #include "trigger_test.h"
 
-using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime runtime;
 TriggerTest app;

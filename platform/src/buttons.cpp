@@ -1,16 +1,16 @@
 #include "platform/buttons.h"
 #include <Arduino.h>  // pinMode, INPUT_PULLUP, digitalReadFast
 
-namespace oc::platform {
+namespace platform {
 
-void ButtonsImpl::init() {
+void Buttons::init() {
     for (int i = 0; i < kCount; ++i) {
         pinMode(kPins[i], INPUT_PULLUP);
         state_[i] = 0xFF;  // start in released state
     }
 }
 
-void ButtonsImpl::scan() {
+void Buttons::scan() {
     for (int i = 0; i < kCount; ++i) {
         // Shift history left, insert current pin sample at LSB.
         // Pin HIGH = not pressed (1), Pin LOW = pressed (0) — active-low.
@@ -18,7 +18,7 @@ void ButtonsImpl::scan() {
     }
 }
 
-ButtonEvent ButtonsImpl::get(uint8_t idx) const {
+ButtonEvent Buttons::get(uint8_t idx) const {
     const uint8_t s = state_[idx];
     return {
         .pressed       = (s == 0x00),   // all 8 samples pressed
@@ -27,4 +27,4 @@ ButtonEvent ButtonsImpl::get(uint8_t idx) const {
     };
 }
 
-} // namespace oc::platform
+} // namespace platform

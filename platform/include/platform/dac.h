@@ -6,11 +6,11 @@
 /// Drives the MCP48x2/AD5668-style DAC via the hardware SPI bus,
 /// matching the protocol used by the existing OC_DAC.cpp driver.
 
-namespace oc::platform {
+namespace platform {
 
-class DACImpl final {
+class DAC final {
 public:
-    DACImpl();
+    DAC();
 
     void init();
 
@@ -23,4 +23,4 @@ private:
     std::array<uint16_t, 4> staged_;
 };
 
-} // namespace oc::platform
+} // namespace platform

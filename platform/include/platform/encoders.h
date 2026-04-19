@@ -21,9 +21,9 @@ struct EncoderEvent {
 ///   RIGHT encoder: A=16, B=15, SW=14
 /// All pins: active-low, INPUT_PULLUP.
 
-namespace oc::platform {
+namespace platform {
 
-class EncodersImpl final {
+class Encoders final {
 public:
     static constexpr int kCount = 2;
 
@@ -52,4 +52,4 @@ private:
     };
 };
 
-} // namespace oc::platform
+} // namespace platform

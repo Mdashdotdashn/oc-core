@@ -16,10 +16,10 @@
 │  oc::Runtime<Platform>  (oc/include/oc/runtime.h)      │
 │  • owns ISR ordering and app dispatch                   │
 │  • calls platform concrete methods directly (no vtable) │
-│  • holds PeriodicCore<ADCImpl, GPIOImpl>                │
+│  • holds PeriodicCore<ADC, GPIO>                │
 └───────┬──────────┬───────────┬──────────────────────────┘
         │          │           │
-   ADCImpl      DACImpl     GPIOImpl      (concrete, final)
+   ADC      DAC     GPIO      (concrete, final)
         │          │           │
 ┌───────▼──────────▼───────────▼──────────────────────────┐
 │  Teensy 3.2 Platform  (platform/)                      │

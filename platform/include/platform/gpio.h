@@ -5,11 +5,11 @@
 /// Reads 4 gate inputs and detects rising edges.
 /// Pin assignments match the existing OC_digital_inputs.h (TR1–TR4).
 
-namespace oc::platform {
+namespace platform {
 
-class GPIOImpl final {
+class GPIO final {
 public:
-    GPIOImpl();
+    GPIO();
 
     void init();
 
@@ -26,4 +26,4 @@ private:
     uint32_t edge_mask_ = 0;
 };
 
-} // namespace oc::platform
+} // namespace platform

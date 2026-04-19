@@ -5,7 +5,7 @@
 #include <array>
 
 // Forward-declare the concrete storage type used on Teensy 3.2.
-namespace oc::platform { class StorageImpl; }
+namespace platform { class Storage; }
 
 namespace oc::calibration {
 
@@ -48,8 +48,8 @@ const CalibrationData& data();
 CalibrationData& mutable_data();
 bool is_valid(const CalibrationData& calibration_data);
 void reset_to_defaults();
-bool load(platform::StorageImpl& storage);
-bool save(platform::StorageImpl& storage);
+bool load(platform::Storage& storage);
+bool save(platform::Storage& storage);
 uint16_t volts_to_dac(uint8_t channel, float volts);
 uint16_t dac_value_at(uint8_t channel, size_t point_index);
 

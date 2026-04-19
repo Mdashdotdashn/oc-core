@@ -24,13 +24,13 @@ static constexpr uint8_t kChanCmd[4] = {
     0b00010110,  // Channel D
 };
 
-namespace oc::platform {
+namespace platform {
 
-DACImpl::DACImpl() {
+DAC::DAC() {
     staged_.fill(0);
 }
 
-void DACImpl::init() {
+void DAC::init() {
     pinMode(kDacCS,  OUTPUT);
     pinMode(kDacRST, OUTPUT);
 
@@ -50,16 +50,16 @@ void DACImpl::init() {
     flush();
 }
 
-void DACImpl::write(uint8_t channel, uint16_t value) {
+void DAC::write(uint8_t channel, uint16_t value) {
     staged_[channel] = value;
 }
 
-void DACImpl::write_all(const uint16_t values[4]) {
+void DAC::write_all(const uint16_t values[4]) {
     for (int i = 0; i < 4; ++i)
         staged_[i] = values[i];
 }
 
-void DACImpl::flush() {
+void DAC::flush() {
     // Direct 1:1 mapping: staged_[0] → DAC channel A, [1] → B, [2] → C, [3] → D.
     // No permutation — used for diagnosing jack-to-channel wiring.
     for (int ch = 0; ch < 4; ++ch) {
@@ -71,8 +71,8 @@ void DACImpl::flush() {
     }
 }
 
-uint16_t DACImpl::get_last_value(uint8_t channel) const {
+uint16_t DAC::get_last_value(uint8_t channel) const {
     return staged_[channel];
 }
 
-} // namespace oc::platform
+} // namespace platform
