@@ -9,9 +9,9 @@
 
 namespace platform {
 
-class ADC final {
+class CVInputs final {
 public:
-    ADC();
+    CVInputs();
 
     void init();
 

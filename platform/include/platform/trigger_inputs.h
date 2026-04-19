@@ -7,9 +7,9 @@
 
 namespace platform {
 
-class GPIO final {
+class TriggerInputs final {
 public:
-    GPIO();
+    TriggerInputs();
 
     void init();
 

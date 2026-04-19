@@ -1,10 +1,10 @@
 #pragma once
-#include "platform/adc.h"
+#include "platform/cv_inputs.h"
 #include "platform/buttons.h"
-#include "platform/dac.h"
+#include "platform/cv_outputs.h"
 #include "platform/display.h"
 #include "platform/encoders.h"
-#include "platform/gpio.h"
+#include "platform/trigger_inputs.h"
 #include "platform/spi0_init.h"
 #include "platform/timer.h"
 #include "platform/storage.h"
@@ -28,16 +28,16 @@ namespace platform {
 class HardwarePlatform {
 public:
     // Concrete type aliases for zero-overhead static dispatch in Runtime/PeriodicCore.
-    using AType    = ADC;
-    using DType    = DAC;
-    using GType    = GPIO;
+    using AType    = CVInputs;
+    using DType    = CVOutputs;
+    using GType    = TriggerInputs;
     using BType    = Buttons;
     using EType    = Encoders;
     using DispType = Display;
 
 public:
     void init_base() {
-        // SPI0 bus (shared by DAC and OLED) must be initialized before either device.
+        // SPI0 bus (shared by CVOutputs and OLED) must be initialized before either device.
         // Sets MOSI/SCK drive strength, CTAR0 (8-bit) and CTAR1 (16-bit) at 18 MHz.
         spi0_init();
         adc_.init();
@@ -60,9 +60,9 @@ public:
         display_.set_offset(calibration_data.display_offset);
     }
 
-    ADC&      adc_impl()      { return adc_;      }
-    DAC&      dac_impl()      { return dac_;      }
-    GPIO&     gpio_impl()     { return gpio_;     }
+    CVInputs&      adc_impl()      { return adc_;      }
+    CVOutputs&      dac_impl()      { return dac_;      }
+    TriggerInputs&     gpio_impl()     { return gpio_;     }
     Buttons&  buttons_impl()  { return buttons_;  }
     Encoders& encoders_impl() { return encoders_; }
     Display&  display_impl()  { return display_;  }
@@ -71,9 +71,9 @@ public:
 
 
 private:
-    ADC      adc_;
-    DAC      dac_;
-    GPIO     gpio_;
+    CVInputs      adc_;
+    CVOutputs      dac_;
+    TriggerInputs     gpio_;
     Buttons  buttons_;
     Encoders encoders_;
     Display  display_;

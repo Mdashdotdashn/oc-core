@@ -8,9 +8,9 @@
 
 namespace platform {
 
-class DAC final {
+class CVOutputs final {
 public:
-    DAC();
+    CVOutputs();
 
     void init();
 

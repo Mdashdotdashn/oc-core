@@ -1,4 +1,4 @@
-#include "platform/dac.h"
+#include "platform/cv_outputs.h"
 #include "platform/drivers/util_SPIFIFO.h"
 #include <Arduino.h>
 
@@ -26,11 +26,11 @@ static constexpr uint8_t kChanCmd[4] = {
 
 namespace platform {
 
-DAC::DAC() {
+CVOutputs::CVOutputs() {
     staged_.fill(0);
 }
 
-void DAC::init() {
+void CVOutputs::init() {
     pinMode(kDacCS,  OUTPUT);
     pinMode(kDacRST, OUTPUT);
 
@@ -50,16 +50,16 @@ void DAC::init() {
     flush();
 }
 
-void DAC::write(uint8_t channel, uint16_t value) {
+void CVOutputs::write(uint8_t channel, uint16_t value) {
     staged_[channel] = value;
 }
 
-void DAC::write_all(const uint16_t values[4]) {
+void CVOutputs::write_all(const uint16_t values[4]) {
     for (int i = 0; i < 4; ++i)
         staged_[i] = values[i];
 }
 
-void DAC::flush() {
+void CVOutputs::flush() {
     // Direct 1:1 mapping: staged_[0] → DAC channel A, [1] → B, [2] → C, [3] → D.
     // No permutation — used for diagnosing jack-to-channel wiring.
     for (int ch = 0; ch < 4; ++ch) {
@@ -71,7 +71,7 @@ void DAC::flush() {
     }
 }
 
-uint16_t DAC::get_last_value(uint8_t channel) const {
+uint16_t CVOutputs::get_last_value(uint8_t channel) const {
     return staged_[channel];
 }
 
