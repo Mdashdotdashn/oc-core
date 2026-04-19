@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
+#include <type_traits>
+#include <utility>
 #include "oc/app.h"
 #include "oc/calibration.h"
 #include "oc/periodic_core.h"
@@ -123,6 +125,9 @@ public:
     const Platform& hardware() const { return hw_; }
 
 private:
+    using AdcType = std::remove_reference_t<decltype(std::declval<Platform&>().adc_impl())>;
+    using GpioType = std::remove_reference_t<decltype(std::declval<Platform&>().gpio_impl())>;
+
     static void FASTRUN isr_trampoline() {
         if (active_instance_) {
             active_instance_->isr();
@@ -263,7 +268,7 @@ private:
     inline static Runtime* active_instance_ = nullptr;
 
     Platform       hw_{};
-    core::PeriodicCore<typename Platform::AType, typename Platform::GType> core_{};
+    core::PeriodicCore<AdcType, GpioType> core_{};
     Application*   app_ = nullptr;
     uint8_t        timing_pin_ = kNoTimingPin;
     uint32_t       core_interval_us_ = 0;
