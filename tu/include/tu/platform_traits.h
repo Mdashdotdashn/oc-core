@@ -29,9 +29,9 @@ struct ButtonTraits {
 struct EncoderTraits {
     static constexpr int kCount = 2;
     struct PinSet { uint8_t a, b, sw; };
-    // LEFT:  encL1=22, encL2=21, butL=23
+    // LEFT:  encL1=22, encL2=21, butL=23  (a/b swapped vs labels so CW=positive)
     // RIGHT: encR1=15, encR2=16, butR=13
-    static constexpr PinSet kPins[kCount] = {{22, 21, 23}, {15, 16, 13}};
+    static constexpr PinSet kPins[kCount] = {{21, 22, 23}, {16, 15, 13}};
 };
 
 struct TriggerInputTraits {
