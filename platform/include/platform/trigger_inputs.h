@@ -1,29 +1,43 @@
 #pragma once
 #include <cstdint>
+#include <Arduino.h>
 
-/// Teensy 3.2 GPIO / digital gate input implementation.
-/// Reads 4 gate inputs and detects rising edges.
-/// Pin assignments match the existing OC_digital_inputs.h (TR1–TR4).
+/// Teensy digital gate input implementation.
+/// Reads N gate inputs and detects rising edges.
+///
+/// Traits must provide:
+///   static constexpr int     kCount;
+///   static constexpr uint8_t kPins[kCount];  // active-low gate inputs
 
 namespace platform {
 
+template <typename Traits>
 class TriggerInputs final {
 public:
-    TriggerInputs();
+    void init() {
+        for (int i = 0; i < Traits::kCount; ++i) {
+            pinMode(Traits::kPins[i], INPUT_PULLUP);
+        }
+    }
 
-    void init();
+    void scan() {
+        uint8_t current = 0;
+        for (int i = 0; i < Traits::kCount; ++i) {
+            // Active-low: invert the raw pin state.
+            current |= static_cast<uint8_t>(!digitalReadFast(Traits::kPins[i])) << i;
+        }
+        current_state_mask_ = current;
+        edge_mask_ = static_cast<uint32_t>(current & ~last_state_mask_);
+        last_state_mask_ = current;
+    }
 
-    void     scan();
-    bool     read_input(uint8_t ch)  const;
-    uint32_t get_edge_mask()         const;
+    bool     read_input(uint8_t ch)  const { return ((current_state_mask_ >> ch) & 0x1u) != 0; }
+    uint32_t get_edge_mask()         const { return edge_mask_; }
 
 private:
-    // TR1-TR4 gate input pins (verified against ArticCircle/OC_gpio.h)
-    static constexpr uint8_t kPins[4] = {0, 1, 2, 3};  // TR1=0, TR2=1, TR3=2, TR4=3
-
-    uint8_t  last_state_mask_ = 0;
+    uint8_t  last_state_mask_    = 0;
     uint8_t  current_state_mask_ = 0;
-    uint32_t edge_mask_ = 0;
+    uint32_t edge_mask_          = 0;
 };
 
 } // namespace platform

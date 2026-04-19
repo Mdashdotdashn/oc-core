@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <Arduino.h>
 
 struct EncoderEvent {
     int8_t  delta;
@@ -8,48 +9,70 @@ struct EncoderEvent {
     bool    click_just_released;
 };
 
-/// Teensy 3.2 encoder implementation.
+/// Teensy encoder implementation.
+/// Rotation: 2-bit shift-register state machine. Click: 8-bit debounce.
 ///
-/// Rotation: 2-bit shift-register state machine, identical to ArticCircle
-/// UI/ui_encoder.h. Rising edge detection on pin A with pin B state determines
-/// direction. No acceleration (can be added later if needed).
-///
-/// Click switch: 8-bit shift-register debounce, same as buttons.
-///
-/// Pins (from OC_gpio.h, board rev >= 2c):
-///   LEFT  encoder: A=22, B=21, SW=23
-///   RIGHT encoder: A=16, B=15, SW=14
-/// All pins: active-low, INPUT_PULLUP.
+/// Traits must provide:
+///   static constexpr int     kCount;
+///   struct PinSet { uint8_t a, b, sw; };
+///   static constexpr PinSet  kPins[kCount];  // active-low, INPUT_PULLUP
 
 namespace platform {
 
+template <typename Traits>
 class Encoders final {
 public:
-    static constexpr int kCount = 2;
+    static constexpr int kCount = Traits::kCount;
 
-    void init();
+    void init() {
+        for (int i = 0; i < kCount; ++i) {
+            pinMode(Traits::kPins[i].a,  INPUT_PULLUP);
+            pinMode(Traits::kPins[i].b,  INPUT_PULLUP);
+            pinMode(Traits::kPins[i].sw, INPUT_PULLUP);
+            state_[i] = {};
+            state_[i].state_a  = 0xFF;
+            state_[i].state_b  = 0xFF;
+            state_[i].state_sw = 0xFF;
+        }
+    }
 
-    void scan();
-    EncoderEvent get(uint8_t idx) const;
+    void scan() {
+        for (int i = 0; i < kCount; ++i) {
+            auto& e = state_[i];
+            e.state_a = (e.state_a << 1) | digitalReadFast(Traits::kPins[i].a);
+            e.state_b = (e.state_b << 1) | digitalReadFast(Traits::kPins[i].b);
+
+            // 2-bit window: rising edge on A with B state determines direction.
+            const uint8_t a = e.state_a & 0x03;
+            const uint8_t b = e.state_b & 0x03;
+            if      (a == 0x02 && b == 0x00) { e.delta =  1; }  // CW
+            else if (b == 0x02 && a == 0x00) { e.delta = -1; }  // CCW
+            else                             { e.delta =  0; }
+
+            e.state_sw = (e.state_sw << 1) | digitalReadFast(Traits::kPins[i].sw);
+        }
+    }
+
+    EncoderEvent get(uint8_t idx) const {
+        const auto& e  = state_[idx];
+        const uint8_t sw = e.state_sw;
+        return {
+            .delta               = e.delta,
+            .click_pressed       = (sw == 0x00),
+            .click_just_pressed  = (sw == 0x80),
+            .click_just_released = (sw == 0x7F),
+        };
+    }
 
 private:
     struct EncoderState {
-        uint8_t pin_a;
-        uint8_t pin_b;
-        uint8_t pin_sw;
-        uint8_t state_a  = 0xFF;  // shift register for pin A
-        uint8_t state_b  = 0xFF;  // shift register for pin B
-        uint8_t state_sw = 0xFF;  // shift register for switch
+        uint8_t state_a  = 0xFF;
+        uint8_t state_b  = 0xFF;
+        uint8_t state_sw = 0xFF;
         int8_t  delta    = 0;
     };
 
-    // [0]=LEFT (A=22,B=21,SW=23), [1]=RIGHT (A=16,B=15,SW=14)
-    // LEFT A/B are swapped to match physical wiring: CCW→+1, CW→-1 without swap.
-    // Swapping pin_a/pin_b corrects direction to CW→+1.
-    EncoderState enc_[kCount] = {
-        {21, 22, 23},   // LEFT:  A<->B swapped to correct rotation direction
-        {16, 15, 14},   // RIGHT: A=16, B=15, SW=14
-    };
+    EncoderState state_[kCount];
 };
 
 } // namespace platform

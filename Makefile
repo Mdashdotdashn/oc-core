@@ -32,12 +32,12 @@ ARDUINO_CLI   ?= arduino-cli
 TEENSY_LOADER := teensy_loader_cli
 FQBN          ?= teensy:avr:teensy31:usb=serialmidi,speed=72,opt=osstd,keys=en-us
 
-# Auto-discover examples: any subdirectory of examples/ that has a platformio.ini
-EXAMPLE_DIRS  := $(wildcard examples/*/platformio.ini)
+# Auto-discover examples under examples/oc/ and examples/tu/
+EXAMPLE_DIRS  := $(wildcard examples/oc/*/platformio.ini) $(wildcard examples/tu/*/platformio.ini)
 EXAMPLES      := $(patsubst examples/%/platformio.ini,%,$(EXAMPLE_DIRS))
 
-# Default example for flash / upload
-EXAMPLE ?= lfo
+# Default example for flash / upload (use oc/ or tu/ prefix, e.g. oc/lfo, tu/clock_test)
+EXAMPLE ?= oc/lfo
 
 # ============================================================================
 # Targets

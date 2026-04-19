@@ -13,9 +13,9 @@ namespace platform {
 
 class Display final {
 public:
-    void init() {
+    void init(uint8_t dc, uint8_t rst, uint8_t cs) {
         frame_buf_.Init();
-        driver_.Init();
+        driver_.Init(dc, rst, cs);
     }
 
     /// ISR: finish previous DMA page transfer.
