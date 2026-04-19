@@ -3,17 +3,13 @@
 #include <Arduino.h>
 #include "oc/app.h"
 #include "oc/calibration.h"
-#include "oc/periodic_core.h"
+#include "oc/core/periodic_core.h"
+#include "hardware.h"
 
 namespace oc {
 
-/// Runtime facade that owns the hardware platform, PeriodicCore, and the
-/// validated ISR sequencing for an Application instance.
-///
-/// One Runtime instance may be active at a time; the timer HAL currently takes
-/// a plain function pointer, so the ISR is dispatched through a static
-/// trampoline.
-template <typename Platform>
+/// Runtime owns the hardware, PeriodicCore, and ISR sequencing for an Application.
+/// One Runtime instance may be active at a time (static trampoline).
 class Runtime {
 public:
     static constexpr uint32_t kDefaultUiIntervalUs = 1000;
@@ -119,7 +115,8 @@ public:
         app_->draw(&hw_.display_impl());
     }
 
-    auto& storage() { return hw_.storage_impl(); }
+    Hardware& hardware() { return hw_; }
+    const Hardware& hardware() const { return hw_; }
 
 private:
     static void FASTRUN isr_trampoline() {
@@ -173,8 +170,8 @@ private:
 
         const core::CoreState& st = core_.get_state();
 
-        // Build Inputs without zero-init: assign arrays directly, no element loop.
-        Inputs in;
+        // Build AudioIn without zero-init: assign arrays directly, no element loop.
+        AudioIn in;
         in.cv       = st.inputs.cv;
         in.cv_raw   = st.inputs.cv_raw;
         in.gate     = st.inputs.gate;
@@ -198,7 +195,7 @@ private:
 
         const uint32_t marshal_elapsed_cycles = current_cycle_count() - marshal_start_cycles;
 
-        Outputs out{};
+        AudioOut out{};
         const uint32_t app_start_cycles = current_cycle_count();
         app_->audio_callback(in, out);
         const uint32_t app_elapsed_cycles = current_cycle_count() - app_start_cycles;
@@ -261,9 +258,9 @@ private:
 
     inline static Runtime* active_instance_ = nullptr;
 
-    Platform           hw_{};
+    Hardware           hw_{};
     core::PeriodicCore core_{};
-    Application*   app_ = nullptr;
+    Application*       app_ = nullptr;
     uint8_t        timing_pin_ = kNoTimingPin;
     uint32_t       core_interval_us_ = 0;
     uint32_t       ui_interval_us_ = kDefaultUiIntervalUs;

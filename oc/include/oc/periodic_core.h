@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <array>
 #include "oc/calibration.h"
+#include "platform/cv_inputs.h"
+#include "platform/trigger_inputs.h"
 
 /// oc-core: PeriodicCore
 ///
@@ -28,16 +30,15 @@ struct CoreState {
     } inputs;
 };
 
-/// Lightweight coordinator between HAL devices and the audio ISR.
-/// Adc and Gpio must be concrete (final) types — no virtual dispatch occurs.
-template <typename Adc, typename Gpio>
+/// Lightweight coordinator between hardware scan and the audio ISR.
+/// Uses concrete platform types — no virtual dispatch.
 class PeriodicCore {
 public:
     PeriodicCore() = default;
 
     /// Register concrete HAL device implementations.
     /// Must be called from main() before starting the timer.
-    void init(Adc* adc, Gpio* gpio) {
+    void init(platform::CVInputs* adc, platform::TriggerInputs* gpio) {
         adc_  = adc;
         gpio_ = gpio;
         state_ = {};
@@ -68,8 +69,8 @@ public:
     uint32_t ticks() const { return state_.tick; }
 
 private:
-    Adc*  adc_  = nullptr;
-    Gpio* gpio_ = nullptr;
+    platform::CVInputs*      adc_  = nullptr;
+    platform::TriggerInputs* gpio_ = nullptr;
 
     CoreState state_{};
 };

@@ -56,7 +56,7 @@ public:
         }
 
         if (save_requested_) {
-            saved_ok_ = oc::calibration::save(runtime_.hardware().storage_impl());
+            saved_ok_ = oc::calibration::save(runtime_.storage());
             save_flash_ = 40;
             save_requested_ = false;
         } else if (save_flash_ > 0) {
