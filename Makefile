@@ -39,6 +39,9 @@ EXAMPLES      := $(patsubst examples/%/platformio.ini,%,$(EXAMPLE_DIRS))
 # Default example for flash / upload (use oc/ or tu/ prefix, e.g. oc/lfo, tu/clock_test)
 EXAMPLE ?= oc/lfo
 
+# Convert oc/lfo -> oc_lfo for PlatformIO env name
+ENV_NAME  = $(subst /,_,$(EXAMPLE))
+
 # ============================================================================
 # Targets
 # ============================================================================
@@ -56,12 +59,9 @@ auto-build:
 	  $(MAKE) cli-build; \
 	fi
 
-# Build every discovered example via PlatformIO
+# Build every example via the root PlatformIO project (shared FrameworkArduino cache)
 pio-build: check-pio
-	@for ex in $(EXAMPLES); do \
-	  echo ">>> Building example: $$ex"; \
-	  $(PIO) run -d examples/$$ex || exit 1; \
-	done
+	$(PIO) run
 
 # Build every discovered example via arduino-cli
 cli-build: check-cli
@@ -70,22 +70,22 @@ cli-build: check-cli
 	  $(ARDUINO_CLI) compile --fqbn $(FQBN) examples/$$ex || exit 1; \
 	done
 
-# Per-example shorthand: e.g. `make lfo`
+# Per-example shorthand: e.g. `make oc/lfo`
 $(EXAMPLES): check-pio
 	@echo "Building example: $@"
-	$(PIO) run -d examples/$@
+	$(PIO) run -e $(subst /,_,$@)
 
 # Flash via PlatformIO (uses upload_protocol from platformio.ini)
 flash: check-pio
-	@echo "Flashing example: $(EXAMPLE)"
-	$(PIO) run -d examples/$(EXAMPLE) -t upload
+	@echo "Flashing example: $(EXAMPLE)  [env: $(ENV_NAME)]"
+	$(PIO) run -e $(ENV_NAME) -t upload
 
 upload: flash
 
 clean:
-	@echo "Cleaning all example build artifacts..."
+	@echo "Cleaning build artifacts..."
+	$(RM_RF) .pio 2>$(NULL) || true
 	@for ex in $(EXAMPLES); do \
-	  echo "  $(RM_RF) examples/$$ex/.pio"; \
 	  $(RM_RF) examples/$$ex/.pio 2>$(NULL) || true; \
 	done
 
