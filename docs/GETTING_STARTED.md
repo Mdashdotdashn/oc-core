@@ -32,7 +32,7 @@ public:
 ## Basic Entrypoint
 
 ```cpp
-#include "all.h"
+#include "platform/all.h"
 #include "my_algorithm.h"
 
 using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;
@@ -55,7 +55,7 @@ int main() {
 The display is always part of the runtime. Apps that need OLED output override `draw()`.
 
 ```cpp
-void draw(oc::hal::DisplayInterface* display) override {
+void draw(oc::Display* display) override {
     if (!display->begin_frame()) {
         return;
     }

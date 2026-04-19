@@ -8,12 +8,12 @@
 │  class MyAlgo : public oc::Application {                │
 │      audio_callback(AudioIn& in, AudioOut& out)         │
 │      idle()                                             │
-│      draw(DisplayInterface* display)                    │
+│      draw(oc::Display* display)                         │
 │  }                                                      │
 └────────────────────────┬────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│  oc::Runtime<Platform>  (core/include/oc/runtime.h)     │
+│  oc::Runtime<Platform>  (oc/include/oc/runtime.h)      │
 │  • owns ISR ordering and app dispatch                   │
 │  • calls platform concrete methods directly (no vtable) │
 │  • holds PeriodicCore<ADCImpl, GPIOImpl>                │
@@ -47,7 +47,7 @@ The ISR path uses **zero virtual dispatch**:
 
 ```text
 oc-core/
-├── core/
+├── oc/
 │   ├── include/oc/
 │   │   ├── app.h
 │   │   ├── calibration.h
@@ -55,11 +55,12 @@ oc-core/
 │   │   └── core/
 │   │       └── periodic_core.h      ← fully inline template, no .cpp
 │   └── src/
-│       └── periodic_core.cpp        ← empty stub (template is header-only)
+│       ├── calibration.cpp
+│       └── periodic_core.cpp         ← empty stub (template is header-only)
 ├── platform/
-│   ├── include/
-│   │   ├── platform.h       ← HardwarePlatform with *_impl() accessors
+│   ├── include/platform/
 │   │   ├── all.h
+│   │   ├── platform.h
 │   │   ├── adc.h
 │   │   ├── buttons.h
 │   │   ├── dac.h
@@ -67,8 +68,8 @@ oc-core/
 │   │   ├── encoders.h
 │   │   ├── gpio.h
 │   │   ├── spi0_init.h
-│   │   ├── timer.h
 │   │   ├── storage.h
+│   │   ├── timer.h
 │   │   └── drivers/
 │   │       ├── SH1106_128x64_driver.h
 │   │       ├── framebuffer.h
@@ -166,6 +167,6 @@ That means output computation still happens every ISR, but the hardware DAC comm
 `oc-core` is a sibling repository next to `ArticCircle`.
 
 - separate git history
-- all framework headers live under `core/include/oc/`
+- all framework headers live under `oc/include/oc/`
 - each example uses explicit `build_src_filter` rules
 - PlatformIO cannot accidentally pull unrelated ArticCircle sources into the build

@@ -177,11 +177,11 @@ Guidance:
 
 ## Suggested Directory Layout
 
-Follow the existing Teensy layout as closely as possible:
+Follow the Teensy layout as closely as possible:
 
 ```text
 platform/
-├── include/
+├── include/platform/
 │   ├── all.h
 │   ├── platform.h
 │   ├── adc.h
@@ -193,17 +193,15 @@ platform/
 │   ├── timer.h
 │   ├── storage.h
 │   └── drivers/
-│       └── (display driver headers)
 └── src/
-    ├── adc.cpp
-    ├── buttons.cpp
-    ├── dac.cpp
-    ├── encoders.cpp
-    ├── gpio.cpp
-    ├── timer.cpp
-    ├── storage.cpp
-    └── drivers/
-        └── (display driver sources)
+  ├── adc.cpp
+  ├── buttons.cpp
+  ├── dac.cpp
+  ├── encoders.cpp
+  ├── gpio.cpp
+  ├── timer.cpp
+  ├── storage.cpp
+  └── drivers/
 ```
 
 That keeps example entrypoints simple and makes platform diffs easier to read.
