@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <array>
 #include "oc/calibration.h"
+#include "oc/platform_traits.h"
 #include "platform/cv_inputs.h"
 #include "platform/trigger_inputs.h"
 
@@ -38,7 +39,7 @@ public:
 
     /// Register concrete HAL device implementations.
     /// Must be called from main() before starting the timer.
-    void init(platform::CVInputs* adc, platform::TriggerInputs* gpio) {
+    void init(platform::CVInputs<oc::CVInputTraits>* adc, platform::TriggerInputs<oc::TriggerInputTraits>* gpio) {
         adc_  = adc;
         gpio_ = gpio;
         state_ = {};
@@ -69,8 +70,8 @@ public:
     uint32_t ticks() const { return state_.tick; }
 
 private:
-    platform::CVInputs*      adc_  = nullptr;
-    platform::TriggerInputs* gpio_ = nullptr;
+    platform::CVInputs<oc::CVInputTraits>*      adc_  = nullptr;
+    platform::TriggerInputs<oc::TriggerInputTraits>* gpio_ = nullptr;
 
     CoreState state_{};
 };

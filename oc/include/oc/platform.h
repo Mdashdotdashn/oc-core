@@ -9,6 +9,7 @@
 #include "platform/timer.h"
 #include "platform/storage.h"
 #include "oc/calibration.h"
+#include "oc/platform_traits.h"
 
 /// Teensy 3.2 hardware platform bundle.
 ///
@@ -51,22 +52,22 @@ public:
         display_.set_offset(calibration_data.display_offset);
     }
 
-    CVInputs&      adc_impl()      { return cv_inputs_;      }
-    CVOutputs&      dac_impl()      { return cv_outputs_;      }
-    TriggerInputs&     gpio_impl()     { return trigger_inputs_;     }
-    Buttons&  buttons_impl()  { return buttons_;  }
-    Encoders& encoders_impl() { return encoders_; }
-    Display&  display_impl()  { return display_;  }
-    Timer&    timer_impl()    { return timer_;    }
-    Storage&  storage_impl()  { return storage_;  }
+    auto& adc_impl()      { return cv_inputs_;      }
+    auto& dac_impl()      { return cv_outputs_;      }
+    auto& gpio_impl()     { return trigger_inputs_;  }
+    auto& buttons_impl()  { return buttons_;         }
+    auto& encoders_impl() { return encoders_;        }
+    auto& display_impl()  { return display_;         }
+    auto& timer_impl()    { return timer_;           }
+    auto& storage_impl()  { return storage_;         }
 
 
 private:
-    CVInputs      cv_inputs_;
-    CVOutputs      cv_outputs_;
-    TriggerInputs     trigger_inputs_;
-    Buttons  buttons_;
-    Encoders encoders_;
+    CVInputs<oc::CVInputTraits>       cv_inputs_;
+    CVOutputs<oc::CVOutputTraits>     cv_outputs_;
+    TriggerInputs<oc::TriggerInputTraits> trigger_inputs_;
+    Buttons<oc::ButtonTraits>         buttons_;
+    Encoders<oc::EncoderTraits>       encoders_;
     Display  display_;
     Timer    timer_;
     Storage  storage_;
