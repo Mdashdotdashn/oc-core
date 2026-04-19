@@ -31,7 +31,7 @@ public:
     void init_base() {
         // SPI0 bus (shared by CVOutputs and OLED) must be initialized before either device.
         // Sets MOSI/SCK drive strength, CTAR0 (8-bit) and CTAR1 (16-bit) at 18 MHz.
-        spi0_init();
+        spi0_init<oc::SpiTraits>();
         cv_inputs_.init();
         cv_outputs_.init();
         trigger_inputs_.init();

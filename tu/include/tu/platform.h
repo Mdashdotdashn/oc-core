@@ -21,13 +21,14 @@ namespace platform {
 class TUHardwarePlatform {
 public:
     void init_base() {
-        // SPI0 bus (used only by SH1106 OLED on T_U; no SPI DAC).
-        spi0_init();
+        // All GPIO inits first, then SPI. On T_U, pin 13 = right encoder click,
+        // NOT SPI0_SCK. T_U routes SPI0_SCK to pin 14 (PTD1); SpiTraits encodes this.
         cv_inputs_.init();
         trigger_inputs_.init();
         trigger_outputs_.init();
         buttons_.init();
         encoders_.init();
+        spi0_init<tu::SpiTraits>();  // SCK on pin 14 (PTD1); pin 13 = encoder button
     }
 
     void init_display() {

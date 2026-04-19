@@ -15,6 +15,11 @@ struct DisplayTraits {
     static constexpr uint8_t kCS  = 8;  // OLED chip-select pin
 };
 
+/// SPI0 bus wiring for OC: SCK on pin 13 (PTC5).
+struct SpiTraits {
+    static volatile uint32_t& sck_config() { return CORE_PIN13_CONFIG; }
+};
+
 struct ButtonTraits {
     static constexpr int kCount = 2;
     // UP=5 (but_top), DOWN=4 (but_bot) — active-low, INPUT_PULLUP

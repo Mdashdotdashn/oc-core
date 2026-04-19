@@ -14,6 +14,12 @@ struct DisplayTraits {
     static constexpr uint8_t kCS  = 10;  // OLED_CS
 };
 
+/// SPI0 bus wiring for T_U: SCK on pin 14 (PTD1).
+/// Pin 13 on T_U is the right encoder click button — must NOT be set to SPI mux.
+struct SpiTraits {
+    static volatile uint32_t& sck_config() { return CORE_PIN14_CONFIG; }
+};
+
 struct ButtonTraits {
     static constexpr int kCount = 2;
     // but_top=3, but_bot=12 — active-low, INPUT_PULLUP
