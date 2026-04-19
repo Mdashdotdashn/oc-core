@@ -1,7 +1,6 @@
 #pragma once
 #include "oc/app.h"
-#include "oc/hal/display.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 /// DisplayTest — shows live encoder and button state on the OLED.
 ///
@@ -19,7 +18,7 @@ public:
         left_click_ = right_click_ = false;
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& /*out*/) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& /*out*/) override {
         left_val_  += in.encoders[0].delta;
         right_val_ += in.encoders[1].delta;
         up_held_    = in.buttons[0].pressed;
@@ -30,7 +29,7 @@ public:
 
     void idle() override { /* drawing happens in draw() called from main */ }
 
-    void draw(oc::hal::DisplayInterface* display) override {
+    void draw(oc::Display* display) override {
         if (!display->begin_frame()) return;
 
         gfx_.Begin(display->frame_buffer(), true);  // true = clear before drawing

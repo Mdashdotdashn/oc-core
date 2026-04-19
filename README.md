@@ -15,7 +15,7 @@ public:
     void init() override { /* one-time setup */ }
 
     // Called every 100µs from hardware ISR (~10 kHz)
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         out.cv[0] = process(in.cv[0]);   // read CV in, write CV out
     }
 
@@ -26,10 +26,10 @@ public:
 
 ```cpp
 // main.cpp — boilerplate, change only the algorithm type
-#include "platforms/teensy32/all.h"
+#include "platform/all.h"
 #include "my_algorithm.h"
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime     runtime;
 MyAlgorithm app;
@@ -47,7 +47,7 @@ int main() {
 The display is always present. Apps that need OLED output override `draw()`:
 
 ```cpp
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime   runtime;
 MyDisplayApp app;
@@ -76,10 +76,14 @@ More detailed documentation now lives under `docs/`:
 
 ```text
 oc-core/
-├── include/oc/              public app and HAL headers
-├── src/                     Teensy 3.2 implementation
-├── examples/                standalone PlatformIO example projects
-└── docs/                    long-form architecture and project notes
+├── oc/
+│   ├── include/oc/            public framework headers
+│   └── src/                   framework source files
+├── platform/
+│   ├── include/platform/      Teensy 3.2 platform headers
+│   └── src/                   Teensy 3.2 platform sources
+├── examples/                  standalone PlatformIO example projects
+└── docs/                      long-form architecture and project notes
 ```
 
 ## Current Behavior

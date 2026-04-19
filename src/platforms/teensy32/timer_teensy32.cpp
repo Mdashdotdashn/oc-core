@@ -8,12 +8,12 @@ namespace {
     IntervalTimer ui_timer_;
 }
 
-void TimerImpl::start(uint32_t interval_us, hal::ISRHandler handler) {
+void TimerImpl::start(uint32_t interval_us, ISRHandler handler) {
     core_timer_.begin(handler, interval_us);
     core_timer_.priority(128);  // Match existing O&C ISR priority
 }
 
-void TimerImpl::start_ui(uint32_t interval_us, hal::ISRHandler handler) {
+void TimerImpl::start_ui(uint32_t interval_us, ISRHandler handler) {
     ui_timer_.begin(handler, interval_us);
     ui_timer_.priority(160);  // Lower than core ISR; suitable for UI polling.
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include "oc/hal/gpio.h"
 #include <cstdint>
 
 /// Teensy 3.6 GPIO / digital gate input implementation.
@@ -8,15 +7,15 @@
 
 namespace oc::platform::teensy32 {
 
-class GPIOImpl : public hal::GPIOInterface {
+class GPIOImpl final {
 public:
     GPIOImpl();
 
     void init();
 
-    void     scan()                         override;
-    bool     read_input(uint8_t ch)  const  override;
-    uint32_t get_edge_mask()         const  override;
+    void     scan();
+    bool     read_input(uint8_t ch)  const;
+    uint32_t get_edge_mask()         const;
 
 private:
     // TR1-TR4 gate input pins (verified against ArticCircle/OC_gpio.h)

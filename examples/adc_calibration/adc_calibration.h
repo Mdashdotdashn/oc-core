@@ -2,8 +2,7 @@
 
 #include "oc/app.h"
 #include "oc/calibration.h"
-#include "oc/hal/display.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 template <typename RuntimeT>
 class CalibrationApp : public oc::Application {
@@ -14,7 +13,7 @@ public:
         load_point();
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         if (in.buttons[0].just_pressed) {
             selected_channel_ = (selected_channel_ + 3) & 0x3;
             load_point();
@@ -57,7 +56,7 @@ public:
         }
 
         if (save_requested_) {
-            saved_ok_ = oc::calibration::save(runtime_.hardware().storage());
+            saved_ok_ = oc::calibration::save(runtime_.storage());
             save_flash_ = 40;
             save_requested_ = false;
         } else if (save_flash_ > 0) {
@@ -70,7 +69,7 @@ public:
         out.cv[selected_channel_] = oc::calibration::dac_value_at(selected_channel_, selected_point_);
     }
 
-    void draw(oc::hal::DisplayInterface* display) override {
+    void draw(oc::Display* display) override {
         if (!display->begin_frame()) {
             return;
         }

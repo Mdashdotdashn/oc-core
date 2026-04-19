@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <array>
 
-#include "oc/hal/storage.h"
+// Forward-declare the concrete storage type.
+namespace oc { class StorageImpl; }
 
 namespace oc::calibration {
 
@@ -47,14 +48,14 @@ const CalibrationData& data();
 CalibrationData& mutable_data();
 bool is_valid(const CalibrationData& calibration_data);
 void reset_to_defaults();
-bool load(hal::StorageInterface* storage);
-bool save(hal::StorageInterface* storage);
+bool load(StorageImpl& storage);
+bool save(StorageImpl& storage);
 uint16_t volts_to_dac(uint8_t channel, float volts);
 uint16_t dac_value_at(uint8_t channel, size_t point_index);
 
 template <typename Platform>
 void initialize(Platform& hw) {
-    if (!load(hw.storage())) {
+    if (!load(hw.storage_impl())) {
         reset_to_defaults();
     }
     hw.apply_calibration(data());

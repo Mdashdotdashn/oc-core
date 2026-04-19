@@ -1,8 +1,7 @@
 #pragma once
 
 #include "oc/app.h"
-#include "oc/hal/display.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 template <typename RuntimeT>
 class CpuMeter : public oc::Application {
@@ -11,11 +10,11 @@ public:
 
     void init() override {}
 
-    void audio_callback(const oc::AudioIn& /*in*/, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& /*in*/, oc::Outputs& out) override {
         out.cv[0] = out.cv[1] = out.cv[2] = out.cv[3] = 0;
     }
 
-    void draw(oc::hal::DisplayInterface* display) override {
+    void draw(oc::Display* display) override {
         if (!display->begin_frame()) {
             return;
         }

@@ -18,7 +18,7 @@ void ButtonsImpl::scan() {
     }
 }
 
-hal::ButtonEvent ButtonsImpl::get(uint8_t idx) const {
+ButtonEvent ButtonsImpl::get(uint8_t idx) const {
     const uint8_t s = state_[idx];
     return {
         .pressed       = (s == 0x00),   // all 8 samples pressed

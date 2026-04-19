@@ -1,10 +1,12 @@
-/// oc-core LFO example — main.cpp (Teensy 3.6)
+/// oc-core LFO example — main.cpp (Teensy 3.2)
 ///
 /// This is the entire boilerplate needed to run an oc-core algorithm
-/// on Teensy 3.6 hardware. To write your own algorithm, replace
+/// on Teensy 3.2 hardware. To write your own algorithm, replace
 /// SimpleLFO with your own Application subclass.
 
-#include "platforms/teensy32/all.h"
+#include "platform/all.h"
+#include "oc/platform.h"
+#include "oc/runtime.h"
 #include "simple_lfo.h"
 #include <Arduino.h>
 
@@ -17,7 +19,7 @@ static constexpr uint8_t kTimingPin = 24;
 // Global instances — same pattern as Daisy examples
 // ---------------------------------------------------------------------------
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime   runtime;
 SimpleLFO app;

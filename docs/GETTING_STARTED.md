@@ -20,7 +20,7 @@ public:
     void init() override {
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         out.cv[0] = in.cv_raw[0] << 4;
     }
 
@@ -32,10 +32,10 @@ public:
 ## Basic Entrypoint
 
 ```cpp
-#include "platforms/teensy32/all.h"
+#include "platform/all.h"
 #include "my_algorithm.h"
 
-using Runtime = oc::Runtime<oc::platform::teensy32::HardwarePlatform>;
+using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime runtime;
 MyAlgorithm app;
@@ -55,7 +55,7 @@ int main() {
 The display is always part of the runtime. Apps that need OLED output override `draw()`.
 
 ```cpp
-void draw(oc::hal::DisplayInterface* display) override {
+void draw(oc::Display* display) override {
     if (!display->begin_frame()) {
         return;
     }

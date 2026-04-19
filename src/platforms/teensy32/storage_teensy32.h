@@ -1,5 +1,5 @@
 #pragma once
-#include "oc/hal/storage.h"
+#include <cstdint>
 #include <EEPROM.h>
 
 /// Teensy 3.6 Storage implementation.
@@ -7,11 +7,11 @@
 
 namespace oc::platform::teensy32 {
 
-class StorageImpl : public hal::StorageInterface {
+class StorageImpl final {
 public:
-    void     read(uint32_t address, void* data, uint32_t size)       override;
-    void     write(uint32_t address, const void* data, uint32_t size) override;
-    uint32_t capacity() const                                         override;
+    void     read(uint32_t address, void* data, uint32_t size);
+    void     write(uint32_t address, const void* data, uint32_t size);
+    uint32_t capacity() const;
 };
 
 } // namespace oc::platform::teensy32

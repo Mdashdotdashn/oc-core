@@ -1,17 +1,19 @@
 #pragma once
-#include "oc/hal/timer.h"
+#include <cstdint>
+
+using ISRHandler = void (*)();
 
 /// Teensy 3.6 Timer implementation.
 /// Wraps Teensy's IntervalTimer to register the audio ISR callback.
 
 namespace oc::platform::teensy32 {
 
-class TimerImpl : public hal::TimerInterface {
+class TimerImpl final {
 public:
-    void start(uint32_t interval_us, hal::ISRHandler handler) override;
-    void start_ui(uint32_t interval_us, hal::ISRHandler handler) override;
-    void stop() override;
-    void stop_ui() override;
+    void start(uint32_t interval_us, ISRHandler handler);
+    void start_ui(uint32_t interval_us, ISRHandler handler);
+    void stop();
+    void stop_ui();
 };
 
 } // namespace oc::platform::teensy32

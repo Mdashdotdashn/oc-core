@@ -1,6 +1,12 @@
 #pragma once
-#include "oc/hal/encoders.h"
 #include <cstdint>
+
+struct EncoderEvent {
+    int8_t  delta;
+    bool    click_pressed;
+    bool    click_just_pressed;
+    bool    click_just_released;
+};
 
 /// Teensy 3.2 encoder implementation.
 ///
@@ -17,12 +23,14 @@
 
 namespace oc::platform::teensy32 {
 
-class EncodersImpl : public hal::EncodersInterface {
+class EncodersImpl final {
 public:
+    static constexpr int kCount = 2;
+
     void init();
 
-    void scan() override;
-    hal::EncoderEvent get(uint8_t idx) const override;
+    void scan();
+    EncoderEvent get(uint8_t idx) const;
 
 private:
     struct EncoderState {

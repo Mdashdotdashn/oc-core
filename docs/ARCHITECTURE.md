@@ -6,66 +6,88 @@
 ┌─────────────────────────────────────────────────────────┐
 │  User Code                                              │
 │  class MyAlgo : public oc::Application {                │
-│      audio_callback(AudioIn& in, AudioOut& out)         │
+│      audio_callback(Inputs& in, Outputs& out)         │
 │      idle()                                             │
-│      draw(DisplayInterface* display)                    │
+│      draw(oc::Display* display)                         │
 │  }                                                      │
 └────────────────────────┬────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│  Framework  (oc::Runtime + oc::core::PeriodicCore)      │
-│  • Runtime       owns ISR ordering and app dispatch     │
-│  • isr_cycle()   scans ADC + GPIO into CoreState        │
-│  • get_state()   exposes CoreState to Runtime           │
+│  oc::Runtime<Platform>  (oc/include/oc/runtime.h)      │
+│  • owns ISR ordering and app dispatch                   │
+│  • calls platform concrete methods directly (no vtable) │
+│  • holds PeriodicCore<ADC, GPIO>                │
 └───────┬──────────┬───────────┬──────────────────────────┘
         │          │           │
-   ADCInterface  DACInterface  GPIOInterface
+   ADC      DAC     GPIO      (concrete, final)
         │          │           │
 ┌───────▼──────────▼───────────▼──────────────────────────┐
-│  Teensy 3.2 Platform  (src/platforms/teensy32/)         │
-│  ADCImpl / DACImpl / GPIOImpl / TimerImpl / StorageImpl │
+│  Teensy 3.2 Platform  (platform/)                      │
+│  HardwarePlatform  owns concrete impl instances         │
+│  adc_impl() / dac_impl() / gpio_impl() / …             │
+│  — plus interface-pointer accessors for non-ISR code    │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Virtual dispatch policy
+
+HAL interfaces (`ADCInterface`, `DACInterface`, etc.) still exist and are used:
+
+- by calibration code, examples, and any non-ISR code that doesn't need to be overhead-free
+- via the interface-pointer accessors on `HardwarePlatform` (`adc()`, `dac()`, …)
+
+The ISR path uses **zero virtual dispatch**:
+
+- All six concrete impl classes are marked `final`.
+- `PeriodicCore<Adc, Gpio>` is a fully inline template; it holds concrete pointers and all calls resolve statically.
+- `Runtime::isr()` and `ui_service()` use the `*_impl()` concrete-reference accessors on `HardwarePlatform`.
+- The `Application::audio_callback()` virtual call is the only remaining vtable dispatch in the hot path (one call per ISR, unavoidable without also templating the app).
 
 ## Repository Layout
 
 ```text
 oc-core/
-├── include/oc/
-│   ├── app.h
-│   ├── hal/
+├── oc/
+│   ├── include/oc/
+│   │   ├── app.h
+│   │   ├── calibration.h
+│   │   ├── runtime.h
+│   │   └── core/
+│   │       └── periodic_core.h      ← fully inline template, no .cpp
+│   └── src/
+│       ├── calibration.cpp
+│       └── periodic_core.cpp         ← empty stub (template is header-only)
+├── platform/
+│   ├── include/platform/
+│   │   ├── all.h
+│   │   ├── platform.h
 │   │   ├── adc.h
 │   │   ├── buttons.h
 │   │   ├── dac.h
 │   │   ├── display.h
 │   │   ├── encoders.h
 │   │   ├── gpio.h
+│   │   ├── spi0_init.h
+│   │   ├── storage.h
 │   │   ├── timer.h
-│   │   └── storage.h
-│   └── core/
-│       └── periodic_core.h
-├── src/
-│   ├── core/
-│   │   └── periodic_core.cpp
-│   └── platforms/
-│       └── teensy32/
-│           ├── platform.h
-│           ├── all.h
-│           ├── adc_teensy32.h/cpp
-│           ├── buttons_teensy32.h/cpp
-│           ├── dac_teensy32.h/cpp
-│           ├── display_teensy32.h
-│           ├── encoders_teensy32.h/cpp
-│           ├── gpio_teensy32.h/cpp
-│           ├── spi0_init.h
-│           ├── timer_teensy32.h/cpp
-│           ├── storage_teensy32.h/cpp
-│           └── drivers/
-│               ├── SH1106_128x64_driver.h/cpp
-│               ├── framebuffer.h
-│               ├── gfx_font_6x8.h
-│               ├── page_display_driver.h
-│               └── weegfx.h/cpp
+│   │   └── drivers/
+│   │       ├── SH1106_128x64_driver.h
+│   │       ├── framebuffer.h
+│   │       ├── gfx_font_6x8.h
+│   │       ├── page_display_driver.h
+│   │       ├── util_SPIFIFO.h
+│   │       └── weegfx.h
+│   └── src/
+│       ├── adc.cpp
+│       ├── buttons.cpp
+│       ├── dac.cpp
+│       ├── encoders.cpp
+│       ├── gpio.cpp
+│       ├── storage.cpp
+│       ├── timer.cpp
+│       └── drivers/
+│           ├── SH1106_128x64_driver.cpp
+│           └── weegfx.cpp
 ├── examples/
 │   ├── cpu_meter/
 │   ├── lfo/
@@ -145,6 +167,6 @@ That means output computation still happens every ISR, but the hardware DAC comm
 `oc-core` is a sibling repository next to `ArticCircle`.
 
 - separate git history
-- all framework headers live under `include/oc/`
+- all framework headers live under `oc/include/oc/`
 - each example uses explicit `build_src_filter` rules
 - PlatformIO cannot accidentally pull unrelated ArticCircle sources into the build

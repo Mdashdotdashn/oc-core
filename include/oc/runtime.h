@@ -4,16 +4,12 @@
 #include "oc/app.h"
 #include "oc/calibration.h"
 #include "oc/core/periodic_core.h"
+#include "hardware.h"
 
 namespace oc {
 
-/// Runtime facade that owns the hardware platform, PeriodicCore, and the
-/// validated ISR sequencing for an Application instance.
-///
-/// One Runtime instance may be active at a time; the timer HAL currently takes
-/// a plain function pointer, so the ISR is dispatched through a static
-/// trampoline.
-template <typename Platform>
+/// Runtime owns the hardware, PeriodicCore, and ISR sequencing for an Application.
+/// One Runtime instance may be active at a time (static trampoline).
 class Runtime {
 public:
     static constexpr uint32_t kDefaultUiIntervalUs = 1000;
@@ -90,31 +86,37 @@ public:
 
         hw_.init_all();
         calibration::initialize(hw_);
-        core_.init(hw_.adc(), hw_.dac(), hw_.gpio());
+        core_.init(&hw_.adc_impl(), &hw_.gpio_impl());
+    }
+
+    /// Bind an application and call its init(). Must be called after
+    /// init_hardware() and before start().
+    void begin(Application& app) {
+        app_ = &app;
         app_->init();
     }
 
     void start(uint32_t interval_us) {
         core_interval_us_ = interval_us;
         reset_profiling();
-        hw_.timer()->start(interval_us, isr_trampoline);
+        hw_.timer_impl().start(interval_us, isr_trampoline);
         if (ui_interval_us_ > 0) {
-            hw_.timer()->start_ui(ui_interval_us_, ui_trampoline);
+            hw_.timer_impl().start_ui(ui_interval_us_, ui_trampoline);
         }
     }
 
     void stop() {
-        hw_.timer()->stop();
-        hw_.timer()->stop_ui();
+        hw_.timer_impl().stop();
+        hw_.timer_impl().stop_ui();
     }
 
     void poll() {
         app_->idle();
-        app_->draw(hw_.display());
+        app_->draw(&hw_.display_impl());
     }
 
-    Platform& hardware() { return hw_; }
-    const Platform& hardware() const { return hw_; }
+    Hardware& hardware() { return hw_; }
+    const Hardware& hardware() const { return hw_; }
 
 private:
     static void FASTRUN isr_trampoline() {
@@ -130,8 +132,8 @@ private:
     }
 
     void FASTRUN ui_service() {
-        hw_.buttons()->scan();
-        hw_.encoders()->scan();
+        hw_.buttons_impl().scan();
+        hw_.encoders_impl().scan();
         ++ui_scan_generation_;
     }
 
@@ -145,15 +147,15 @@ private:
         // The OLED is always present and shares SPI0 with the DAC. Start the
         // next page transfer first, then flush the DAC values staged last tick.
         const uint32_t display_start_cycles = current_cycle_count();
-        hw_.display()->flush();
+        hw_.display_impl().flush();
         const uint32_t display_flush_elapsed_cycles = current_cycle_count() - display_start_cycles;
 
         const uint32_t dac_flush_start_cycles = current_cycle_count();
-        hw_.dac()->flush();
+        hw_.dac_impl().flush();
         const uint32_t dac_flush_elapsed_cycles = current_cycle_count() - dac_flush_start_cycles;
 
         const uint32_t display_update_start_cycles = current_cycle_count();
-        hw_.display()->update();
+        hw_.display_impl().update();
         const uint32_t display_update_elapsed_cycles = current_cycle_count() - display_update_start_cycles;
         const uint32_t display_elapsed_cycles = display_flush_elapsed_cycles + display_update_elapsed_cycles;
 
@@ -167,30 +169,30 @@ private:
         last_ui_generation_consumed_ = ui_generation;
 
         const core::CoreState& st = core_.get_state();
-        AudioIn in{};
-        for (int i = 0; i < 4; ++i) {
-            in.cv[i] = st.inputs.cv[i];
-            in.cv_raw[i] = st.inputs.cv_raw[i];
-            in.gate[i] = st.inputs.gate[i];
-        }
+
+        // Build AudioIn without zero-init: assign arrays directly, no element loop.
+        AudioIn in;
+        in.cv       = st.inputs.cv;
+        in.cv_raw   = st.inputs.cv_raw;
+        in.gate     = st.inputs.gate;
         in.gate_edges = st.inputs.edges;
 
-        for (int i = 0; i < 2; ++i) {
-            const auto button = hw_.buttons()->get(i);
-            in.buttons[i] = {
-                button.pressed,
-                has_new_ui_scan ? button.just_pressed : false,
-                has_new_ui_scan ? button.just_released : false,
-            };
+        // Mask just_pressed/released/delta to zero when no new UI scan is available.
+        // Using a mask avoids branching per field.
+        const uint8_t ui_mask = has_new_ui_scan ? 0xFF : 0x00;
 
-            const auto encoder = hw_.encoders()->get(i);
-            in.encoders[i] = {
-                static_cast<int8_t>(has_new_ui_scan ? encoder.delta : 0),
-                encoder.click_pressed,
-                has_new_ui_scan ? encoder.click_just_pressed : false,
-                has_new_ui_scan ? encoder.click_just_released : false,
-            };
-        }
+        const auto b0 = hw_.buttons_impl().get(0);
+        in.buttons[0] = { b0.pressed, bool(b0.just_pressed & ui_mask), bool(b0.just_released & ui_mask) };
+        const auto b1 = hw_.buttons_impl().get(1);
+        in.buttons[1] = { b1.pressed, bool(b1.just_pressed & ui_mask), bool(b1.just_released & ui_mask) };
+
+        const auto e0 = hw_.encoders_impl().get(0);
+        in.encoders[0] = { static_cast<int8_t>(e0.delta & ui_mask), e0.click_pressed,
+                           bool(e0.click_just_pressed & ui_mask), bool(e0.click_just_released & ui_mask) };
+        const auto e1 = hw_.encoders_impl().get(1);
+        in.encoders[1] = { static_cast<int8_t>(e1.delta & ui_mask), e1.click_pressed,
+                           bool(e1.click_just_pressed & ui_mask), bool(e1.click_just_released & ui_mask) };
+
         const uint32_t marshal_elapsed_cycles = current_cycle_count() - marshal_start_cycles;
 
         AudioOut out{};
@@ -200,7 +202,7 @@ private:
 
         const uint32_t output_start_cycles = current_cycle_count();
         for (int i = 0; i < 4; ++i) {
-            hw_.dac()->write(i, out.cv[i]);
+            hw_.dac_impl().write(i, out.cv[i]);
         }
         const uint32_t output_elapsed_cycles = current_cycle_count() - output_start_cycles;
 
@@ -256,9 +258,9 @@ private:
 
     inline static Runtime* active_instance_ = nullptr;
 
-    Platform       hw_{};
+    Hardware           hw_{};
     core::PeriodicCore core_{};
-    Application*   app_ = nullptr;
+    Application*       app_ = nullptr;
     uint8_t        timing_pin_ = kNoTimingPin;
     uint32_t       core_interval_us_ = 0;
     uint32_t       ui_interval_us_ = kDefaultUiIntervalUs;
