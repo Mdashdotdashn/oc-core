@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "oc/app.h"
 #include "oc/calibration.h"
-#include "oc/core/periodic_core.h"
+#include "oc/periodic_core.h"
 
 namespace oc {
 

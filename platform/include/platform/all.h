@@ -6,6 +6,6 @@
 #pragma once
 
 #include "platform/platform.h"
-#include "oc/core/periodic_core.h"
+#include "oc/periodic_core.h"
 #include "oc/app.h"
 #include "oc/runtime.h"
