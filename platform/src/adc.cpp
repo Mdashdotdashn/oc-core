@@ -11,8 +11,6 @@ ADC::ADC() {
     raw_.fill(0);
     smoothed_accumulator_.fill(0);
     smoothed_value_.fill(0);
-    calibrated_.fill(0);
-    offsets_.fill(0);
 }
 
 void ADC::init() {
@@ -36,8 +34,6 @@ void ADC::scan() {
             raw;
         const uint32_t smoothed = smoothed_accumulator_[current_channel_] >> kSmoothing;
         smoothed_value_[current_channel_] = smoothed;
-        calibrated_[current_channel_] =
-            static_cast<int32_t>(offsets_[current_channel_]) - static_cast<int32_t>(smoothed);
     }
 
     // Advance to the next channel and start a new conversion
@@ -51,15 +47,6 @@ uint32_t ADC::read_raw(uint8_t ch) const {
 
 uint32_t ADC::get_smoothed(uint8_t ch) const {
     return smoothed_value_[ch];
-}
-
-int32_t ADC::get_calibrated(uint8_t ch) const {
-    return calibrated_[ch];
-}
-
-void ADC::set_calibration_offset(uint8_t channel, uint16_t offset) {
-    offsets_[channel] = offset;
-    calibrated_[channel] = static_cast<int32_t>(offset) - static_cast<int32_t>(smoothed_value_[channel]);
 }
 
 } // namespace platform

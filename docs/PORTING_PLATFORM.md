@@ -86,13 +86,13 @@ Requirements:
 - 4 input channels
 - ISR-safe `scan()`
 - raw and smoothed readings
-- calibrated signed values for pitch CV use
+- deterministic raw/smoothed values only
 
 Guidance:
 
 - `scan()` should be cheap and deterministic
 - if the ADC runs as a rolling pipeline, `scan()` should read the previous conversion and kick the next one
-- calibration policy can remain platform-specific as long as `get_calibrated()` returns stable signed control values
+- keep calibration policy in the core/app layer, not in the platform ADC driver
 
 ### GPIO
 

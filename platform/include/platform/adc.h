@@ -18,9 +18,6 @@ public:
     void     scan();
     uint32_t read_raw(uint8_t ch)      const;
     uint32_t get_smoothed(uint8_t ch)  const;
-    int32_t  get_calibrated(uint8_t ch) const;
-
-    void set_calibration_offset(uint8_t channel, uint16_t offset);
 
 private:
     static constexpr int   kSmoothing = 4;  ///< Exponential moving average factor (2^N)
@@ -31,8 +28,6 @@ private:
     std::array<uint32_t, 4> raw_;
     std::array<uint32_t, 4> smoothed_accumulator_;
     std::array<uint32_t, 4> smoothed_value_;
-    std::array<int32_t, 4> calibrated_;
-    std::array<uint16_t, 4> offsets_;
 };
 
 } // namespace platform

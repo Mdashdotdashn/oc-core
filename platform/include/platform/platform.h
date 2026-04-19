@@ -57,9 +57,6 @@ public:
     }
 
     void apply_calibration(const oc::calibration::CalibrationData& calibration_data) {
-        for (size_t i = 0; i < oc::calibration::kAdcChannelCount; ++i) {
-            adc_.set_calibration_offset(i, calibration_data.adc.offset[i]);
-        }
         display_.set_offset(calibration_data.display_offset);
     }
 
