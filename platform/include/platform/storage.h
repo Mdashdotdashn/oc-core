@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <EEPROM.h>
 
-/// Teensy 3.6 Storage implementation.
+/// Teensy 3.2 Storage implementation.
 /// Wraps the Teensy EEPROM library for persistent calibration storage.
 
 namespace platform {

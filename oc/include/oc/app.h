@@ -9,8 +9,8 @@ namespace platform { class Display; }
 /// oc-core: User Application Interface
 ///
 /// This is the only header a user algorithm needs to include.
-/// It defines AudioIn (inputs from hardware each ISR cycle),
-/// AudioOut (outputs the user writes to each cycle), and the
+/// It defines Inputs (inputs from hardware each ISR cycle),
+/// Outputs (outputs the user writes to each cycle), and the
 /// Application base class with the user-facing contract:
 ///
 ///   audio_callback(in, out)   — real-time, called every 100µs
@@ -23,7 +23,7 @@ namespace platform { class Display; }
 ///   class MyAlgorithm : public oc::Application {
 ///   public:
 ///       void init() override { ... }
-///       void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override { ... }
+///       void audio_callback(const oc::Inputs& in, oc::Outputs& out) override { ... }
 ///       void idle() override { ... }
 ///   };
 
@@ -41,7 +41,7 @@ struct ButtonState {
 };
 
 /// Hardware input snapshot for one audio ISR cycle.
-struct AudioIn {
+struct Inputs {
     /// Calibrated CV values from ADC (signed, scaled to pitch CV units).
     /// Use these for pitch/frequency calculations.
     std::array<int32_t, 4> cv;
@@ -74,7 +74,7 @@ struct AudioIn {
 };
 
 /// Output values to drive from one audio ISR cycle.
-struct AudioOut {
+struct Outputs {
     /// DAC output values for each channel (0–65535, 16-bit).
     /// Maps to 0–10V on the O&C hardware (after calibration).
     std::array<uint16_t, 4> cv;
@@ -113,7 +113,7 @@ public:
     /// Read inputs from `in`, write outputs to `out`.
     /// MUST be deterministic and complete well under 100µs.
     /// No heap allocation, no blocking I/O, no long loops.
-    virtual void audio_callback(const AudioIn& in, AudioOut& out) = 0;
+    virtual void audio_callback(const Inputs& in, Outputs& out) = 0;
 
     /// Called from the main() while(1) loop as fast as possible.
     ///

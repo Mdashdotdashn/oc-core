@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-/// Teensy 3.6 GPIO / digital gate input implementation.
+/// Teensy 3.2 GPIO / digital gate input implementation.
 /// Reads 4 gate inputs and detects rising edges.
 /// Pin assignments match the existing OC_digital_inputs.h (TR1–TR4).
 

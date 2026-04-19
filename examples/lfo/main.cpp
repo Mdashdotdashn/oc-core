@@ -1,7 +1,7 @@
-/// oc-core LFO example — main.cpp (Teensy 3.6)
+/// oc-core LFO example — main.cpp (Teensy 3.2)
 ///
 /// This is the entire boilerplate needed to run an oc-core algorithm
-/// on Teensy 3.6 hardware. To write your own algorithm, replace
+/// on Teensy 3.2 hardware. To write your own algorithm, replace
 /// SimpleLFO with your own Application subclass.
 
 #include "platform/all.h"

@@ -19,7 +19,7 @@ public:
         edge_flash_.fill(0);
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         out.cv[0] = out.cv[1] = out.cv[2] = out.cv[3] = 0;
 
         for (int i = 0; i < 4; ++i) {

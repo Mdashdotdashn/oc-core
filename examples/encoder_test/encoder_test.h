@@ -17,7 +17,7 @@ public:
         update_outputs();
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         const auto& left  = in.encoders[0];
         const auto& right = in.encoders[1];
 
@@ -53,7 +53,7 @@ private:
 
     float volt_a_ = 0.0f;
     float volt_b_ = 0.0f;
-    oc::AudioOut out_;
+    oc::Outputs out_;
 
     static float clamp(float v) {
         if (v < kMin) return kMin;

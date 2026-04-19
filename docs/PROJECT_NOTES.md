@@ -71,7 +71,7 @@ Changes made (branch `no-virtual`):
 | `HardwarePlatform` gains `*_impl()` concrete-reference accessors and `AType`/`GType`/… type aliases | Exposes concrete types to `Runtime` and `PeriodicCore` |
 | `PeriodicCore<Adc, Gpio>` converted to fully inline template | 15 vtable dispatches in `isr_cycle()` → 0; tiny getters inline to array loads |
 | `Runtime::isr()` and `ui_service()` use `*_impl()` accessors throughout | All ISR HAL calls go through concrete types |
-| `AudioIn` marshal: removed `{}` zero-init + element loops → direct `std::array` assignment + single `ui_mask` bitwise gate | Eliminates ~80-byte memset and per-field conditional branches |
+| `Inputs` marshal: removed `{}` zero-init + element loops → direct `std::array` assignment + single `ui_mask` bitwise gate | Eliminates ~80-byte memset and per-field conditional branches |
 
 Measured ISR profile at 10 kHz on Teensy 3.2 (72 MHz), idle app:
 

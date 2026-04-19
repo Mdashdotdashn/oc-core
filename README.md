@@ -15,7 +15,7 @@ public:
     void init() override { /* one-time setup */ }
 
     // Called every 100µs from hardware ISR (~10 kHz)
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         out.cv[0] = process(in.cv[0]);   // read CV in, write CV out
     }
 

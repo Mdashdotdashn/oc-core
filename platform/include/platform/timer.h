@@ -3,7 +3,7 @@
 
 using ISRHandler = void (*)();
 
-/// Teensy 3.6 Timer implementation.
+/// Teensy 3.2 Timer implementation.
 /// Wraps Teensy's IntervalTimer to register the audio ISR callback.
 
 namespace platform {

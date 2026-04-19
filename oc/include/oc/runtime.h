@@ -174,8 +174,8 @@ private:
 
         const core::CoreState& st = core_.get_state();
 
-        // Build AudioIn without zero-init: assign arrays directly, no element loop.
-        AudioIn in;
+        // Build Inputs without zero-init: assign arrays directly, no element loop.
+        Inputs in;
         in.cv       = st.inputs.cv;
         in.cv_raw   = st.inputs.cv_raw;
         in.gate     = st.inputs.gate;
@@ -199,7 +199,7 @@ private:
 
         const uint32_t marshal_elapsed_cycles = current_cycle_count() - marshal_start_cycles;
 
-        AudioOut out{};
+        Outputs out{};
         const uint32_t app_start_cycles = current_cycle_count();
         app_->audio_callback(in, out);
         const uint32_t app_elapsed_cycles = current_cycle_count() - app_start_cycles;

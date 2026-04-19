@@ -10,7 +10,7 @@
 #include "platform/storage.h"
 #include "oc/calibration.h"
 
-/// Teensy 3.6 hardware platform bundle.
+/// Teensy 3.2 hardware platform bundle.
 ///
 /// Owns one concrete instance of each HAL device.
 /// Call init_all() once from main() before starting the timer.

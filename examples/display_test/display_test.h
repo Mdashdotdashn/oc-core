@@ -18,7 +18,7 @@ public:
         left_click_ = right_click_ = false;
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& /*out*/) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& /*out*/) override {
         left_val_  += in.encoders[0].delta;
         right_val_ += in.encoders[1].delta;
         up_held_    = in.buttons[0].pressed;

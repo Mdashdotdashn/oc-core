@@ -20,7 +20,7 @@ public:
     void init() override {
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         out.cv[0] = in.cv_raw[0] << 4;
     }
 

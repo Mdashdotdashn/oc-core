@@ -6,7 +6,7 @@
 ┌─────────────────────────────────────────────────────────┐
 │  User Code                                              │
 │  class MyAlgo : public oc::Application {                │
-│      audio_callback(AudioIn& in, AudioOut& out)         │
+│      audio_callback(Inputs& in, Outputs& out)         │
 │      idle()                                             │
 │      draw(oc::Display* display)                         │
 │  }                                                      │

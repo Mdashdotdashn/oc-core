@@ -1,4 +1,4 @@
-/// Convenience single-include for Teensy 3.6 platform.
+/// Convenience single-include for Teensy 3.2 platform.
 /// Include this in main.cpp to get hw, audio, and the app interface.
 ///
 ///   #include "platform/all.h"

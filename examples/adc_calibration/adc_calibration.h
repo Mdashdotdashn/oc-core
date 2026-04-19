@@ -13,7 +13,7 @@ public:
         load_point();
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         if (in.buttons[0].just_pressed) {
             selected_channel_ = (selected_channel_ + 3) & 0x3;
             load_point();

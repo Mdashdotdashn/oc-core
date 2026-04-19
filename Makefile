@@ -1,5 +1,5 @@
 # Makefile for oc-core framework examples
-# Builds Teensy 3.6 firmware via PlatformIO (preferred) or arduino-cli fallback.
+# Builds Teensy 3.2 firmware via PlatformIO (preferred) or arduino-cli fallback.
 #
 # Prerequisites:
 #   PlatformIO CLI  https://platformio.org/install/cli

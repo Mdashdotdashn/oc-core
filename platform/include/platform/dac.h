@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <array>
 
-/// Teensy 3.6 DAC implementation.
+/// Teensy 3.2 DAC implementation.
 /// Drives the MCP48x2/AD5668-style DAC via the hardware SPI bus,
 /// matching the protocol used by the existing OC_DAC.cpp driver.
 

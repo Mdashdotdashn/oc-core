@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <array>
 
-/// Teensy 3.6 ADC implementation.
+/// Teensy 3.2 ADC implementation.
 /// Wraps the Teensy ADC library with round-robin channel scanning,
 /// simple exponential smoothing, and calibration offset support.
 /// Reference implementation adapted from ArticCircle/OC_ADC.cpp.

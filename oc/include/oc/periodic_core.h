@@ -5,17 +5,17 @@
 /// oc-core: PeriodicCore
 ///
 /// Coordinates the hardware scan and state capture for each ISR cycle.
-/// Not user-facing — the user interacts with AudioIn/AudioOut in audio_callback().
+/// Not user-facing — the user interacts with Inputs/Outputs in audio_callback().
 ///
 /// Templated on concrete ADC and GPIO types to eliminate virtual dispatch in the ISR.
 /// Call isr_cycle() at the top of every audio ISR. It scans ADC and GPIO,
 /// then populates the internal CoreState. The audio ISR reads the state
-/// via get_state() to build the AudioIn buffer before calling audio_callback().
+/// via get_state() to build the Inputs buffer before calling audio_callback().
 
 namespace oc::core {
 
 /// Immutable snapshot of all hardware inputs for one ISR cycle.
-/// Captured by isr_cycle() and read by the audio ISR to build AudioIn.
+/// Captured by isr_cycle() and read by the audio ISR to build Inputs.
 struct CoreState {
     uint32_t tick;                     ///< Monotonically increasing ISR tick counter
 

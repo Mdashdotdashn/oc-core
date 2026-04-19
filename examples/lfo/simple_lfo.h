@@ -25,7 +25,7 @@ public:
         base_increment_ = 429497;  // ~1 Hz default
     }
 
-    void audio_callback(const oc::AudioIn& in, oc::AudioOut& out) override {
+    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         // Hard sync: reset phase on gate 0 rising edge
         if (in.gate_edges & 0x1) {
             phase_ = 0;
