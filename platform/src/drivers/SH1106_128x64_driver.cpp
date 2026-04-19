@@ -18,6 +18,11 @@
 #define SPI_SR_RXCTR 0xF0
 #endif
 
+// Static pin storage — set by Init().
+uint8_t SH1106_128x64_Driver::kDC  = 0;
+uint8_t SH1106_128x64_Driver::kRST = 0;
+uint8_t SH1106_128x64_Driver::kCS  = 0;
+
 #define DMA_PAGE_TRANSFER
 static DMAChannel page_dma;
 
@@ -49,24 +54,28 @@ static uint8_t SH1106_init_seq[] = {
 static uint8_t SH1106_display_on_seq[] = { 0xaf };
 
 /*static*/
-void SH1106_128x64_Driver::Init() {
-  pinMode(OLED_CS,  OUTPUT);
-  pinMode(OLED_RST, OUTPUT);
-  pinMode(OLED_DC,  OUTPUT);
+void SH1106_128x64_Driver::Init(uint8_t dc, uint8_t rst, uint8_t cs) {
+  kDC  = dc;
+  kRST = rst;
+  kCS  = cs;
 
-  digitalWriteFast(OLED_RST, HIGH);  delay(1);
-  digitalWriteFast(OLED_RST, LOW);   delay(10);
-  digitalWriteFast(OLED_RST, HIGH);  delay(20);
+  pinMode(kCS,  OUTPUT);
+  pinMode(kRST, OUTPUT);
+  pinMode(kDC,  OUTPUT);
 
-  digitalWriteFast(OLED_CS, OLED_CS_INACTIVE);
-  digitalWriteFast(OLED_DC, LOW);
+  digitalWriteFast(kRST, HIGH);  delay(1);
+  digitalWriteFast(kRST, LOW);   delay(10);
+  digitalWriteFast(kRST, HIGH);  delay(20);
 
-  digitalWriteFast(OLED_RST, LOW);  delay(20);
-  digitalWriteFast(OLED_RST, HIGH); delay(20);
+  digitalWriteFast(kCS, OLED_CS_INACTIVE);
+  digitalWriteFast(kDC, LOW);
 
-  digitalWriteFast(OLED_CS, OLED_CS_ACTIVE);
+  digitalWriteFast(kRST, LOW);  delay(20);
+  digitalWriteFast(kRST, HIGH); delay(20);
+
+  digitalWriteFast(kCS, OLED_CS_ACTIVE);
   SPI_send(SH1106_init_seq, sizeof(SH1106_init_seq));
-  digitalWriteFast(OLED_CS, OLED_CS_INACTIVE);
+  digitalWriteFast(kCS, OLED_CS_INACTIVE);
 
   // SH1106 has 132 physical columns; the visible 128 start at column 2 by default.
   // Some OLEDs are wired differently and need offset 0.
@@ -91,8 +100,7 @@ void SH1106_128x64_Driver::Flush() {
   // Always unconditionally finalize: deassert CS, stop DMA, clear SPI flags.
   // This matches ArticCircle's original pattern. Called at the start of every
   // ISR to cleanly end the previous page's DMA before DAC or new DMA runs.
-  digitalWriteFast(OLED_CS, OLED_CS_INACTIVE);
-  page_dma.clearComplete();
+  digitalWriteFast(kCS, OLED_CS_INACTIVE);
   page_dma.disable();
   SPI0_RSER = 0;
   // Halt SPI0 and clear both FIFOs before returning control to the ISR.
@@ -116,34 +124,34 @@ void SH1106_128x64_Driver::Clear() {
   // SH1106 page-addressing mode does NOT auto-advance pages after the last
   // column, so we must re-send the page-address command for every page.
   // Previously only page 0 was cleared; pages 1-7 kept GDDRAM power-on data.
-  digitalWriteFast(OLED_DC, HIGH);  // data mode for all page sends
+  digitalWriteFast(kDC, HIGH);  // data mode for all page sends
   for (size_t p = 0; p < kNumPages; ++p) {
     SH1106_data_start_seq[2] = 0xb0 | p;
 
-    digitalWriteFast(OLED_DC, LOW);   // command mode: send column + page addr
-    digitalWriteFast(OLED_CS, OLED_CS_ACTIVE);
+    digitalWriteFast(kDC, LOW);   // command mode: send column + page addr
+    digitalWriteFast(kCS, OLED_CS_ACTIVE);
     SPI_send(SH1106_data_start_seq, sizeof(SH1106_data_start_seq));
 
-    digitalWriteFast(OLED_DC, HIGH);  // data mode: 128 zero bytes
+    digitalWriteFast(kDC, HIGH);  // data mode: 128 zero bytes
     SPI_send(empty_page, kPageSize);
-    digitalWriteFast(OLED_CS, OLED_CS_INACTIVE);
+    digitalWriteFast(kCS, OLED_CS_INACTIVE);
   }
 
-  digitalWriteFast(OLED_DC, LOW);
-  digitalWriteFast(OLED_CS, OLED_CS_ACTIVE);
+  digitalWriteFast(kDC, LOW);
+  digitalWriteFast(kCS, OLED_CS_ACTIVE);
   SPI_send(SH1106_display_on_seq, sizeof(SH1106_display_on_seq));
-  digitalWriteFast(OLED_CS, OLED_CS_INACTIVE);
-  digitalWriteFast(OLED_DC, HIGH);
+  digitalWriteFast(kCS, OLED_CS_INACTIVE);
+  digitalWriteFast(kDC, HIGH);
 }
 
 /*static*/
 void SH1106_128x64_Driver::SendPage(uint_fast8_t index, const uint8_t *data) {
   SH1106_data_start_seq[2] = 0xb0 | index;
 
-  digitalWriteFast(OLED_DC, LOW);
-  digitalWriteFast(OLED_CS, OLED_CS_ACTIVE);
+  digitalWriteFast(kDC, LOW);
+  digitalWriteFast(kCS, OLED_CS_ACTIVE);
   SPI_send(SH1106_data_start_seq, sizeof(SH1106_data_start_seq));
-  digitalWriteFast(OLED_DC, HIGH);
+  digitalWriteFast(kDC, HIGH);
 
 #ifdef DMA_PAGE_TRANSFER
   SPI0_SR   = 0xFF0F0000;
@@ -153,7 +161,7 @@ void SH1106_128x64_Driver::SendPage(uint_fast8_t index, const uint8_t *data) {
   page_dma.enable();
 #else
   SPI_send(const_cast<uint8_t*>(data), kPageSize);
-  digitalWriteFast(OLED_CS, OLED_CS_INACTIVE);
+  digitalWriteFast(kCS, OLED_CS_INACTIVE);
 #endif
 }
 

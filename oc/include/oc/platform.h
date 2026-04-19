@@ -40,7 +40,7 @@ public:
     }
 
     void init_display() {
-        display_.init();
+        display_.init(oc::DisplayTraits::kDC, oc::DisplayTraits::kRST, oc::DisplayTraits::kCS);
     }
 
     void init_all() {

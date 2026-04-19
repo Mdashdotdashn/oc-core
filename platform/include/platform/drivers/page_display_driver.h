@@ -13,9 +13,9 @@ public:
 
   PagedDisplayDriver() { }
 
-  void Init() {
+  void Init(uint8_t dc, uint8_t rst, uint8_t cs) {
 
-    display_driver::Init();
+    display_driver::Init(dc, rst, cs);
 
     current_page_index_ = 0;
     current_page_data_ = NULL;

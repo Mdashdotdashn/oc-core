@@ -9,6 +9,12 @@
 
 namespace oc {
 
+struct DisplayTraits {
+    static constexpr uint8_t kDC  = 6;  // OLED data/command pin (OC board)
+    static constexpr uint8_t kRST = 7;  // OLED reset pin
+    static constexpr uint8_t kCS  = 8;  // OLED chip-select pin
+};
+
 struct ButtonTraits {
     static constexpr int kCount = 2;
     // UP=5 (but_top), DOWN=4 (but_bot) — active-low, INPUT_PULLUP
