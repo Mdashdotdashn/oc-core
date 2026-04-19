@@ -5,6 +5,8 @@
 /// idle() renders the frame via weegfx.
 
 #include "platform/all.h"
+#include "oc/platform.h"
+#include "oc/runtime.h"
 #include "display_test.h"
 #include <Arduino.h>
 

@@ -5,6 +5,8 @@
 /// SimpleLFO with your own Application subclass.
 
 #include "platform/all.h"
+#include "oc/platform.h"
+#include "oc/runtime.h"
 #include "simple_lfo.h"
 #include <Arduino.h>
 

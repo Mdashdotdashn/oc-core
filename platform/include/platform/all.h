@@ -1,11 +1,16 @@
-/// Convenience single-include for Teensy 3.2 platform.
-/// Include this in main.cpp to get hw, audio, and the app interface.
+/// Convenience single-include for Teensy 3.2 platform drivers.
+/// This header must remain platform-only and not depend on oc/* headers.
 ///
 ///   #include "platform/all.h"
 
 #pragma once
 
-#include "platform/platform.h"
-#include "oc/periodic_core.h"
-#include "oc/app.h"
-#include "oc/runtime.h"
+#include "platform/buttons.h"
+#include "platform/cv_inputs.h"
+#include "platform/cv_outputs.h"
+#include "platform/display.h"
+#include "platform/encoders.h"
+#include "platform/spi0_init.h"
+#include "platform/storage.h"
+#include "platform/timer.h"
+#include "platform/trigger_inputs.h"
