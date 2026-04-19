@@ -1,5 +1,5 @@
-#include "../include/dac.h"
-#include "drivers/util_SPIFIFO.h"
+#include "platform/dac.h"
+#include "platform/drivers/util_SPIFIFO.h"
 #include <Arduino.h>
 
 // DAC8565 hardware pin assignments (match OC_gpio.h: DAC_CS=10, DAC_RST=9)

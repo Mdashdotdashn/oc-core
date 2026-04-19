@@ -1,13 +1,13 @@
 #pragma once
-#include "adc.h"
-#include "buttons.h"
-#include "dac.h"
-#include "display.h"
-#include "encoders.h"
-#include "gpio.h"
-#include "spi0_init.h"
-#include "timer.h"
-#include "storage.h"
+#include "platform/adc.h"
+#include "platform/buttons.h"
+#include "platform/dac.h"
+#include "platform/display.h"
+#include "platform/encoders.h"
+#include "platform/gpio.h"
+#include "platform/spi0_init.h"
+#include "platform/timer.h"
+#include "platform/storage.h"
 #include "oc/calibration.h"
 
 /// Teensy 3.6 hardware platform bundle.

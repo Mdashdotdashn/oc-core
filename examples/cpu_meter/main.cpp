@@ -1,4 +1,4 @@
-#include "all.h"
+#include "platform/all.h"
 #include "cpu_meter.h"
 
 using Runtime = oc::Runtime<oc::platform::HardwarePlatform>;

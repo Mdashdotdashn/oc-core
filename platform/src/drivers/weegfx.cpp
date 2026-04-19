@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "../../include/drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 #ifndef SWAP
 #define SWAP(a, b) do { typeof(a) t = a; a = b; b = t; } while(0)
 #endif
@@ -391,7 +391,7 @@ void Graphics::drawCircle(coord_t center_x, coord_t center_y, coord_t r) {
   }
 }
 
-#include "../../include/drivers/gfx_font_6x8.h"
+#include "platform/drivers/gfx_font_6x8.h"
 static inline weegfx::font_glyph get_char_glyph(char c) __attribute__((always_inline));
 static inline weegfx::font_glyph get_char_glyph(char c) {
   return ssd1306xled_font6x8 + Graphics::kFixedFontW * (c - 32);

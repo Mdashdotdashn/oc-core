@@ -1,7 +1,7 @@
 #pragma once
 
 #include "oc/app.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 /// TriggerTest — shows the 4 gate inputs and counts rising edges.
 ///

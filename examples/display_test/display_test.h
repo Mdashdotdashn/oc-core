@@ -1,6 +1,6 @@
 #pragma once
 #include "oc/app.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 /// DisplayTest — shows live encoder and button state on the OLED.
 ///

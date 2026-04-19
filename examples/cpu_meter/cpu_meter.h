@@ -1,7 +1,7 @@
 #pragma once
 
 #include "oc/app.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 template <typename RuntimeT>
 class CpuMeter : public oc::Application {

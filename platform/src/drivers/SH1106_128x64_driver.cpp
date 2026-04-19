@@ -12,7 +12,7 @@
 
 #include <Arduino.h>
 #include <DMAChannel.h>
-#include "../../include/drivers/SH1106_128x64_driver.h"
+#include "platform/drivers/SH1106_128x64_driver.h"
 
 #ifndef SPI_SR_RXCTR
 #define SPI_SR_RXCTR 0xF0

@@ -1,7 +1,7 @@
 #pragma once
-#include "drivers/SH1106_128x64_driver.h"
-#include "drivers/framebuffer.h"
-#include "drivers/page_display_driver.h"
+#include "platform/drivers/SH1106_128x64_driver.h"
+#include "platform/drivers/framebuffer.h"
+#include "platform/drivers/page_display_driver.h"
 
 /// Teensy 3.2 SH1106 OLED display implementation.
 ///

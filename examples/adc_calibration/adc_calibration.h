@@ -2,7 +2,7 @@
 
 #include "oc/app.h"
 #include "oc/calibration.h"
-#include "drivers/weegfx.h"
+#include "platform/drivers/weegfx.h"
 
 template <typename RuntimeT>
 class CalibrationApp : public oc::Application {

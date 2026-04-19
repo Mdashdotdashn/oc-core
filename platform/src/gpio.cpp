@@ -1,4 +1,4 @@
-#include "../include/gpio.h"
+#include "platform/gpio.h"
 #include <Arduino.h>   // digitalReadFast
 
 namespace oc::platform {

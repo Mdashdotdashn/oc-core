@@ -1,6 +1,6 @@
 /// oc-core encoder_test example — main.cpp
 
-#include "all.h"
+#include "platform/all.h"
 #include "encoder_test.h"
 #include <Arduino.h>
 

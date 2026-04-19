@@ -1,4 +1,4 @@
-#include "../include/adc.h"
+#include "platform/adc.h"
 #include <ADC.h>   // Teensy ADC library
 
 namespace oc::platform {

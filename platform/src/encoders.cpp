@@ -1,4 +1,4 @@
-#include "../include/encoders.h"
+#include "platform/encoders.h"
 #include <Arduino.h>  // pinMode, digitalReadFast
 
 namespace oc::platform {

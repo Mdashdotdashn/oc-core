@@ -4,7 +4,7 @@
 /// on Teensy 3.6 hardware. To write your own algorithm, replace
 /// SimpleLFO with your own Application subclass.
 
-#include "all.h"
+#include "platform/all.h"
 #include "simple_lfo.h"
 #include <Arduino.h>
 
