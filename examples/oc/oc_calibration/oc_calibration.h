@@ -123,17 +123,21 @@ private:
 
     void handle_adc(const oc::Inputs& in) {
         if (in.buttons[0].just_pressed) {
+            adc_channel_ = (adc_channel_ + 3) & 0x3;
+        }
+        if (in.buttons[1].just_pressed) {
+            adc_channel_ = (adc_channel_ + 1) & 0x3;
+        }
+        if (in.encoders[0].delta != 0) {
+            adc_point_ = static_cast<uint8_t>(clamp(
+                static_cast<int>(adc_point_) + in.encoders[0].delta,
+                0,
+                static_cast<int>(oc::calibration::kAdcCalibrationPointCount) - 1));
+        }
+        if (in.encoders[0].click_just_pressed) {
             phase_ = CalWizardPhase::kDac;
             load_dac_point();
             return;
-        }
-        if (in.buttons[1].just_pressed) {
-            save_calibration();
-            return;
-        }
-        if (in.encoders[0].delta != 0) {
-            adc_channel_ = static_cast<uint8_t>(
-                clamp(static_cast<int>(adc_channel_) + in.encoders[0].delta, 0, 3));
         }
         if (in.encoders[1].click_just_pressed) {
             capture_adc_point();
@@ -172,9 +176,11 @@ private:
         }
 
         gfx_.setPrintPos(0, 33);
-        gfx_.print("RC:cap  L:ch");
+        gfx_.print("UP/DN:CH");
         gfx_.setPrintPos(0, 44);
-        gfx_.print("UP:DAC  DN:sav");
+        gfx_.print("L:V  RC:store");
+        gfx_.setPrintPos(0, 55);
+        gfx_.print("LC:DAC<");
     }
 
     void draw_save_status(uint8_t x) {
@@ -201,13 +207,6 @@ private:
             points.data(),
             oc::calibration::kAdcCalibrationPointCount);
         capture_flash_ = 25;
-
-        if (++adc_point_ >= oc::calibration::kAdcCalibrationPointCount) {
-            adc_point_ = 0;
-            if (adc_channel_ < 3) {
-                ++adc_channel_;
-            }
-        }
     }
 
     void load_dac_point() {
