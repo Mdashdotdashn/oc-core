@@ -14,7 +14,7 @@ any machine can pick up the work without losing context.
 - Top-level `Makefile` convenience wrapper for `make <example>`, `make flash`,
   `make clean`.
 - All six examples build cleanly: `lfo`, `display_test`, `encoder_test`,
-  `cpu_meter`, `trigger_test`, `adc_calibration`.
+  `cpu_meter`, `trigger_test`, `oc_calibration`.
 - Hardware validated on Teensy 3.2: ADC, DAC, GPIO, encoders, buttons,
   SH1106 OLED, trigger inputs.
 - Repo pushed to `https://github.com/Mdashdotdashn/oc-core` on `master`.
@@ -137,7 +137,7 @@ The four docs most useful for context:
 - ISR rate: 10 kHz (`runtime.start(100)` → 100 µs period)
 - Shared SPI0 bus: DAC8565 + SH1106 128×64 OLED
 - Display model: paged DMA, one page per ISR, 8 pages = full frame
-- Calibration: unified persisted blob, boot-time load, DAC-first O_C-style
-  wizard planned (first app `examples/adc_calibration` already in place)
+- Calibration: unified persisted blob, boot-time load, DAC/ADC calibration
+  wizard available in `examples/oc/oc_calibration`
 - Upload protocol: `teensy-cli` with `-s` for soft-reboot (first flash needs
   manual reset button press)

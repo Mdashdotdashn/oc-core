@@ -97,7 +97,7 @@ oc-core/
 ## Included Examples
 
 - `examples/lfo` basic CV generation example
-- `examples/adc_calibration` first calibration app for editing and saving DAC reference points
+- `examples/oc/oc_calibration` calibration app for DAC and ADC calibration flows
 - `examples/encoder_test` front-panel encoder and switch test
 - `examples/display_test` OLED, buttons, and encoder integration test
 - `examples/cpu_meter` ISR load meter with bucketed runtime profiling

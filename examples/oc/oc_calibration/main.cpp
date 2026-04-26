@@ -1,7 +1,7 @@
 #include "platform/all.h"
 #include "oc/platform.h"
 #include "oc/runtime.h"
-#include "adc_calibration.h"
+#include "oc_calibration.h"
 
 using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
