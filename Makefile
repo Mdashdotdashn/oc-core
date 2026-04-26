@@ -39,8 +39,12 @@ EXAMPLES      := $(patsubst examples/%/platformio.ini,%,$(EXAMPLE_DIRS))
 # Default example for flash / upload (use oc/ or tu/ prefix, e.g. oc/lfo, tu/clock_test)
 EXAMPLE ?= oc/lfo
 
-# Convert oc/lfo -> oc_lfo for PlatformIO env name
-ENV_NAME  = $(subst /,_,$(EXAMPLE))
+# Convert EXAMPLE into a PlatformIO env name.
+# Accepts both prefixed paths (oc/lfo, tu/clock_test, oc/oc_test)
+# and direct env names (oc_lfo, tu_clock_test, oc_test).
+EXAMPLE_PARENT = $(notdir $(patsubst %/,%,$(dir $(EXAMPLE))))
+EXAMPLE_LEAF   = $(notdir $(EXAMPLE))
+ENV_NAME       = $(if $(findstring /,$(EXAMPLE)),$(if $(filter $(EXAMPLE_PARENT)_%,$(EXAMPLE_LEAF)),$(EXAMPLE_LEAF),$(EXAMPLE_PARENT)_$(EXAMPLE_LEAF)),$(EXAMPLE))
 
 # ============================================================================
 # Targets
@@ -121,7 +125,8 @@ help:
 	@echo "  make cli-build          Build all examples via arduino-cli"
 	@echo "  make lfo                Build only the lfo example"
 	@echo "  make flash              Flash EXAMPLE to Teensy (default: $(EXAMPLE))"
-	@echo "  make flash EXAMPLE=lfo  Flash a specific example"
+	@echo "  make flash EXAMPLE=oc/lfo      Flash by prefixed example path"
+	@echo "  make flash EXAMPLE=oc_test     Flash by direct env name"
 	@echo "  make clean              Remove all .pio build artifacts"
 	@echo "  make help               Show this message"
 	@echo ""
