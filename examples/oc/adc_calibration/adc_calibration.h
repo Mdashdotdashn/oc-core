@@ -115,7 +115,7 @@ private:
 
         gfx_.setPrintPos(0, 11);
         gfx_.print("CH:");
-        gfx_.print(dac_channel_ + 1);
+        gfx_.print(output_label(dac_channel_));
         gfx_.setPrintPos(48, 11);
         gfx_.print("V:");
         print_voltage(dac_point_ + oc::calibration::kDacVoltageMin);
@@ -270,6 +270,10 @@ private:
 
     static int clamp(int value, int low, int high) {
         return value < low ? low : (value > high ? high : value);
+    }
+
+    static char output_label(uint8_t channel) {
+        return static_cast<char>('A' + (channel & 0x3));
     }
 
     RuntimeT& runtime_;

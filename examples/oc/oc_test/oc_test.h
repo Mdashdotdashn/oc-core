@@ -14,10 +14,6 @@
 class TriggerToCV : public oc::Application {
 public:
     void init() override {
-        gate_          = false;
-        gate_edges_    = 0;
-        edge_count_    = 0;
-        flash_         = 0;
         current_page_  = 0;
         left_val_      = 0;
         right_val_     = 0;
@@ -27,6 +23,9 @@ public:
         right_click_   = false;
         cv_            = {0, 0, 0, 0};
         cv_raw_        = {0, 0, 0, 0};
+        pattern_phase_ = 0;
+        pattern_tick_counter_ = 0;
+        output_volts_  = {-3, 0, 1, 2};
     }
 
     void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
@@ -37,9 +36,7 @@ public:
             current_page_ = (current_page_ + 1) % kPageCount;
         }
 
-        gate_ = in.gate[0];
         gates_ = in.gate;
-        gate_edges_ = in.gate_edges;
         left_val_  += in.encoders[0].delta;
         right_val_ += in.encoders[1].delta;
         up_held_    = in.buttons[0].pressed;
@@ -49,16 +46,26 @@ public:
         cv_         = in.cv;
         cv_raw_     = in.cv_raw;
 
-        // Drive CV out 1: full scale = 5 V on O_C hardware, zero = 0 V
-        out.cv[0] = gate_ ? 0xFFFFu : 0u;
-        out.cv[1] = out.cv[2] = out.cv[3] = 0u;
+        if (current_page_ == 2) {
+            if (++pattern_tick_counter_ >= kPatternStepTicks) {
+                pattern_tick_counter_ = 0;
+                pattern_phase_ = static_cast<uint8_t>((pattern_phase_ + 1) & 0x3);
+            }
 
-        if (in.gate_edges & 0x01u) {
-            ++edge_count_;
-            flash_ = kFlashFrames;
-        } else if (flash_ > 0) {
-            --flash_;
+            for (uint8_t i = 0; i < 4; ++i) {
+                const uint8_t pattern_index = static_cast<uint8_t>((i + pattern_phase_) & 0x3);
+                const int8_t volts = kPatternVolts[pattern_index];
+                output_volts_[i] = volts;
+                out.cv[i] = oc::calibration::volts_to_dac(i, static_cast<float>(volts));
+            }
+        } else {
+            pattern_tick_counter_ = 0;
+            output_volts_ = {0, 0, 0, 0};
+            for (uint8_t i = 0; i < 4; ++i) {
+                out.cv[i] = oc::calibration::volts_to_dac(i, 0.0f);
+            }
         }
+
     }
 
     void draw(oc::Display* display) override {
@@ -74,8 +81,9 @@ public:
     }
 
 private:
-    static constexpr uint8_t kFlashFrames = 20;
-    static constexpr const char* kPageTitles[] = {"encoders", "cv inputs", "output"};
+    static constexpr uint32_t kPatternStepTicks = 20000;  // 2s at 10kHz ISR
+    static constexpr std::array<int8_t, 4> kPatternVolts = {-3, 0, 1, 2};
+    static constexpr const char* kPageTitles[] = {"encoders", "cv inputs", "output", "trigger"};
     static constexpr uint8_t kPageCount = sizeof(kPageTitles) / sizeof(kPageTitles[0]);
 
     void draw_page_body() {
@@ -88,6 +96,9 @@ private:
             break;
         case 2:
             draw_page_output();
+            break;
+        case 3:
+            draw_page_trigger();
             break;
         default:
             break;
@@ -121,41 +132,39 @@ private:
 
     void draw_page_output() {
         gfx_.setPrintPos(0, 14);
-        gfx_.print("IN1:");
-        gfx_.print(gate_ ? "HIGH" : "low ");
-
-        gfx_.setPrintPos(0, 28);
-        gfx_.print("OUT1:");
-        gfx_.print(gate_ ? "5V" : "0V");
-
-        gfx_.setPrintPos(0, 42);
-        gfx_.print("edges:");
-        gfx_.print(static_cast<int>(edge_count_));
-
-        gfx_.setPrintPos(112, 42);
-        gfx_.print(flash_ > 0 ? "*" : ".");
-    }
-
-    void draw_page_inputs() {
-        const uint32_t gates = gate_mask();
-
-        gfx_.setPrintPos(0, 14);
-        gfx_.print("G:");
-        for (int i = 0; i < 4; ++i) {
-            gfx_.print(gates & (1u << i) ? "1" : "0");
-        }
+        gfx_.print("OUTA:");
+        print_pattern_voltage(output_volts_[0]);
 
         gfx_.setPrintPos(64, 14);
-        gfx_.print("E:");
-        gfx_.print(static_cast<int>(gate_edges_));
+        gfx_.print("OUTB:");
+        print_pattern_voltage(output_volts_[1]);
 
         gfx_.setPrintPos(0, 28);
-        gfx_.print("CV1:");
-        gfx_.print(static_cast<int>(cv_raw_[0]));
+        gfx_.print("OUTC:");
+        print_pattern_voltage(output_volts_[2]);
+
+        gfx_.setPrintPos(64, 28);
+        gfx_.print("OUTD:");
+        print_pattern_voltage(output_volts_[3]);
 
         gfx_.setPrintPos(0, 42);
-        gfx_.print("CV2:");
-        gfx_.print(static_cast<int>(cv_raw_[1]));
+        gfx_.print("step:");
+        gfx_.print(static_cast<int>(pattern_phase_ + 1));
+        gfx_.print("/4");
+    }
+
+    void draw_page_trigger() {
+        draw_trigger_value("INA", gates_[0], 0, 14);
+        draw_trigger_value("INB", gates_[1], 64, 14);
+        draw_trigger_value("INC", gates_[2], 0, 28);
+        draw_trigger_value("IND", gates_[3], 64, 28);
+    }
+
+    void draw_trigger_value(const char* label, bool value, int16_t x, int16_t y) {
+        gfx_.setPrintPos(x, y);
+        gfx_.print(label);
+        gfx_.print(":");
+        gfx_.print(value ? "1" : "0");
     }
 
     void draw_cv_input(uint8_t channel, int16_t x, int16_t y) {
@@ -191,6 +200,14 @@ private:
         gfx_.print("V");
     }
 
+    void print_pattern_voltage(int8_t volts) {
+        if (volts >= 0) {
+            gfx_.print("+");
+        }
+        gfx_.print(static_cast<int>(volts));
+        gfx_.print("V");
+    }
+
     void draw_header() {
         const char* title = kPageTitles[current_page_];
         const uint8_t title_len = string_length(title);
@@ -214,16 +231,6 @@ private:
         gfx_.invertRect(next_x, 56, kLabelWidth, 8);
     }
 
-    uint32_t gate_mask() const {
-        uint32_t mask = 0;
-        for (uint8_t i = 0; i < 4; ++i) {
-            if (gates_[i]) {
-                mask |= (1u << i);
-            }
-        }
-        return mask;
-    }
-
     static uint8_t string_length(const char* text) {
         uint8_t len = 0;
         while (text[len] != '\0') {
@@ -236,10 +243,6 @@ private:
     std::array<bool, 4> gates_ = {false, false, false, false};
     std::array<int32_t, 4> cv_ = {0, 0, 0, 0};
     std::array<uint32_t, 4> cv_raw_ = {0, 0, 0, 0};
-    bool gate_ = false;
-    uint32_t gate_edges_ = 0;
-    uint32_t edge_count_ = 0;
-    uint8_t flash_ = 0;
     uint8_t current_page_ = 0;
     int32_t left_val_ = 0;
     int32_t right_val_ = 0;
@@ -247,4 +250,7 @@ private:
     bool down_held_ = false;
     bool left_click_ = false;
     bool right_click_ = false;
+    uint8_t pattern_phase_ = 0;
+    uint32_t pattern_tick_counter_ = 0;
+    std::array<int8_t, 4> output_volts_ = {-3, 0, 1, 2};
 };
