@@ -49,22 +49,18 @@ public:
     }
 
     void apply_calibration(const oc::calibration::CalibrationData& calibration_data) {
-        for (size_t i = 0; i < oc::calibration::kAdcChannelCount; ++i) {
+        display_.set_offset(calibration_data.display_offset);
+        for (uint8_t channel = 0; channel < oc::calibration::kAdcChannelCount; ++channel) {
             cv_inputs_.set_calibration_points(
-                i,
-                calibration_data.adc.points[i].data(),
+                channel,
+                calibration_data.adc.points[channel].data(),
                 oc::calibration::kAdcCalibrationPointCount);
         }
-        display_.set_offset(calibration_data.display_offset);
     }
 
-    bool button_held_at_boot(uint8_t idx) {
-        for (int i = 0; i < 8; ++i) {
-            buttons_.scan();
-        }
-        return buttons_.get(idx).pressed;
-    }
-
+    auto* adc()           { return &cv_inputs_;      }
+    auto* dac()           { return &cv_outputs_;     }
+    auto* gpio()          { return &trigger_inputs_; }
     auto& adc_impl()      { return cv_inputs_;      }
     auto& dac_impl()      { return cv_outputs_;      }
     auto& gpio_impl()     { return trigger_inputs_;  }
@@ -73,15 +69,6 @@ public:
     auto& display_impl()  { return display_;         }
     auto& timer_impl()    { return timer_;           }
     auto& storage_impl()  { return storage_;         }
-
-    auto* adc()      { return &cv_inputs_; }
-    auto* dac()      { return &cv_outputs_; }
-    auto* gpio()     { return &trigger_inputs_; }
-    auto* buttons()  { return &buttons_; }
-    auto* encoders() { return &encoders_; }
-    auto* display()  { return &display_; }
-    auto* timer()    { return &timer_; }
-    auto* storage()  { return &storage_; }
 
 
 private:

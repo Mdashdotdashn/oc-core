@@ -1,8 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
-#include <array>
 
 // Forward-declare the concrete storage type used on Teensy 3.2.
 namespace platform { class Storage; }

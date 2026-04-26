@@ -1,18 +1,18 @@
-/// oc-core encoder_test example — main.cpp
-
 #include "platform/all.h"
 #include "oc/platform.h"
 #include "oc/runtime.h"
-#include "encoder_test.h"
-#include <Arduino.h>
+#include "oc_test.h"
 
 using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
-Runtime     runtime;
-EncoderTest app;
+Runtime runtime;
+TriggerToCV app;
 
 int main() {
     runtime.init(app);
     runtime.start(100);
-    while (true) { runtime.poll(); }
+
+    while (true) {
+        runtime.poll();
+    }
 }
