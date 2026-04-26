@@ -68,8 +68,8 @@ private:
             load_dac_point();
         }
         if (in.buttons[1].just_pressed) {
-            save_calibration();
-            return;
+            dac_channel_ = (dac_channel_ + 1) & 0x3;
+            load_dac_point();
         }
         if (in.encoders[0].delta != 0) {
             dac_point_ = clamp(
@@ -79,11 +79,12 @@ private:
             load_dac_point();
         }
         if (in.encoders[0].click_just_pressed) {
-            phase_ = CalWizardPhase::kAdc;
-            return;
+            fine_step_ = !fine_step_;
         }
         if (in.encoders[1].click_just_pressed) {
-            fine_step_ = !fine_step_;
+            save_calibration();
+            phase_ = CalWizardPhase::kAdc;
+            return;
         }
         if (in.encoders[1].delta != 0) {
             const int step = fine_step_ ? 1 : 16;
@@ -115,7 +116,9 @@ private:
         gfx_.setPrintPos(0, 33);
         gfx_.print("L:V  R:code");
         gfx_.setPrintPos(0, 44);
-        gfx_.print("LC:ADC> DN:save");
+        gfx_.print("UP/DN:CH");
+        gfx_.setPrintPos(0, 55);
+        gfx_.print("LC:step RC:save>");
     }
 
     void handle_adc(const oc::Inputs& in) {
