@@ -19,7 +19,8 @@ public:
             load_point();
         }
         if (in.buttons[1].just_pressed) {
-            save_requested_ = true;
+            selected_channel_ = (selected_channel_ + 1) & 0x3;
+            load_point();
         }
 
         if (in.encoders[0].delta != 0) {
@@ -34,12 +35,11 @@ public:
         }
 
         if (in.encoders[0].click_just_pressed) {
-            selected_channel_ = (selected_channel_ + 1) & 0x3;
-            load_point();
+            fine_step_ = !fine_step_;
         }
 
         if (in.encoders[1].click_just_pressed) {
-            fine_step_ = !fine_step_;
+            save_requested_ = true;
         }
 
         if (in.encoders[1].delta != 0) {
@@ -100,7 +100,9 @@ public:
         gfx_.setPrintPos(0, 33);
         gfx_.print("L:V  R:code");
         gfx_.setPrintPos(0, 44);
-        gfx_.print("LC:CH DN:save");
+        gfx_.print("UP/DN:CH");
+        gfx_.setPrintPos(0, 55);
+        gfx_.print("LC:step RC:save");
 
         gfx_.End();
         display->end_frame();

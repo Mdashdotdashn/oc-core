@@ -1,7 +1,7 @@
 #include "platform/all.h"
 #include "oc/platform.h"
 #include "oc/runtime.h"
-#include "trigger_to_cv.h"
+#include "oc_test.h"
 
 using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
