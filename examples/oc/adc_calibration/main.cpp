@@ -9,7 +9,8 @@ Runtime runtime;
 CalibrationApp<Runtime> app(runtime);
 
 int main() {
-    runtime.init(app);
+    runtime.init_hardware();
+    runtime.begin(app);
     runtime.start(100);
 
     while (true) {

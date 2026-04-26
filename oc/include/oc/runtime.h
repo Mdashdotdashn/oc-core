@@ -77,8 +77,7 @@ public:
         return static_cast<uint8_t>(percent > 100U ? 100U : percent);
     }
 
-    void init(Application& app) {
-        app_ = &app;
+    void init_hardware() {
         active_instance_ = this;
 
         if (timing_pin_ != kNoTimingPin) {
@@ -100,6 +99,11 @@ public:
         app_->init();
     }
 
+    void init(Application& app) {
+        init_hardware();
+        begin(app);
+    }
+
     void start(uint32_t interval_us) {
         core_interval_us_ = interval_us;
         reset_profiling();
@@ -119,6 +123,8 @@ public:
         app_->draw(&hw_.display_impl());
     }
 
+    auto& hardware() { return hw_; }
+    const auto& hardware() const { return hw_; }
     auto& storage() { return hw_.storage_impl(); }
 
 private:

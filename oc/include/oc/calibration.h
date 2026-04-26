@@ -10,12 +10,16 @@ namespace platform { class Storage; }
 namespace oc::calibration {
 
 static constexpr uint32_t kMagic = 0x43414C31u;  // CAL1
-static constexpr uint16_t kVersion = 1;
+static constexpr uint16_t kVersion = 2;
 static constexpr uint32_t kStorageAddress = 0;
 
 static constexpr size_t kAdcChannelCount = 4;
 static constexpr size_t kDacChannelCount = 4;
 static constexpr size_t kDacVoltagePointCount = 11;
+static constexpr size_t kAdcCalibrationPointCount = 8;
+
+// Capture points for ADC calibration, spanning the usable O_C CV input range.
+static constexpr int kAdcCalibrationVoltages[kAdcCalibrationPointCount] = {-3, -2, -1, 0, 1, 2, 3, 4};
 
 static constexpr int kDacVoltageMin = -3;
 static constexpr int kDacVoltageMax = 6;
@@ -25,9 +29,7 @@ struct DACCalibrationData {
 };
 
 struct ADCCalibrationData {
-    std::array<uint16_t, kAdcChannelCount> offset;
-    uint16_t pitch_cv_scale;
-    int16_t  pitch_cv_offset;
+    std::array<std::array<uint16_t, kAdcCalibrationPointCount>, kAdcChannelCount> points;
 };
 
 struct CalibrationData {

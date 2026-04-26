@@ -5,9 +5,13 @@ namespace oc::calibration {
 
 namespace {
 
-constexpr uint16_t kDefaultPitchCvScale = 12 << 7;
-constexpr uint16_t kDefaultAdcOffset = static_cast<uint16_t>(4096.0f * 0.6666667f);
 constexpr uint8_t kDefaultDisplayOffset = 2;
+
+// Estimated raw ADC counts for calibration voltages -3V..+4V.
+// These are only boot defaults until the calibration wizard captures real values.
+constexpr uint16_t kDefaultAdcPoints[kAdcCalibrationPointCount] = {
+    4095, 3640, 3185, 2730, 2275, 1820, 1365, 910
+};
 
 constexpr std::array<uint16_t, kDacVoltagePointCount> kDefaultDacTable = {
     4890, 11443, 17997, 24551, 31104, 37658, 44211, 50765, 57318, 63871, 65535
@@ -28,9 +32,11 @@ CalibrationData make_default_data() {
         channel_table = kDefaultDacTable;
     }
 
-    calibration_data.adc.offset.fill(kDefaultAdcOffset);
-    calibration_data.adc.pitch_cv_scale = kDefaultPitchCvScale;
-    calibration_data.adc.pitch_cv_offset = 0;
+    for (auto& channel_points : calibration_data.adc.points) {
+        for (size_t i = 0; i < kAdcCalibrationPointCount; ++i) {
+            channel_points[i] = kDefaultAdcPoints[i];
+        }
+    }
 
     calibration_data.display_offset = kDefaultDisplayOffset;
     calibration_data.reserved0[0] = 0;

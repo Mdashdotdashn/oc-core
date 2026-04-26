@@ -54,8 +54,7 @@ public:
         for (int i = 0; i < 4; ++i) {
             const uint32_t smoothed = adc_->get_smoothed(i);
             state_.inputs.cv_raw[i] = smoothed;
-            state_.inputs.cv[i] =
-                static_cast<int32_t>(oc::calibration::data().adc.offset[i]) - static_cast<int32_t>(smoothed);
+            state_.inputs.cv[i] = adc_->get_calibrated(i);
             state_.inputs.gate[i]   = gpio_->read_input(i);
         }
         state_.inputs.edges = gpio_->get_edge_mask();
