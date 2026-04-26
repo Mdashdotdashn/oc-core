@@ -119,6 +119,8 @@ public:
         app_->draw(&hw_.display_impl());
     }
 
+    auto& hardware() { return hw_; }
+    const auto& hardware() const { return hw_; }
     auto& storage() { return hw_.storage_impl(); }
 
 private:

@@ -50,8 +50,17 @@ public:
 
     void apply_calibration(const oc::calibration::CalibrationData& calibration_data) {
         display_.set_offset(calibration_data.display_offset);
+        for (uint8_t channel = 0; channel < oc::calibration::kAdcChannelCount; ++channel) {
+            cv_inputs_.set_calibration_points(
+                channel,
+                calibration_data.adc.points[channel].data(),
+                oc::calibration::kAdcCalibrationPointCount);
+        }
     }
 
+    auto* adc()           { return &cv_inputs_;      }
+    auto* dac()           { return &cv_outputs_;     }
+    auto* gpio()          { return &trigger_inputs_; }
     auto& adc_impl()      { return cv_inputs_;      }
     auto& dac_impl()      { return cv_outputs_;      }
     auto& gpio_impl()     { return trigger_inputs_;  }
