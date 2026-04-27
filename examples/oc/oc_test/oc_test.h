@@ -199,64 +199,87 @@ private:
     class CpuPage final : public PageApp {
     public:
         CpuPage(RuntimeT& runtime,
-                const std::array<PageStat, kPageCount>& page_stats,
                 const uint8_t& active_page)
             : PageApp("cpu"),
               runtime_(runtime),
-              page_stats_(page_stats),
               active_page_(active_page) {}
 
         void audio_callback(const oc::Inputs& /*in*/, oc::Outputs& /*out*/) override {}
 
         void draw_body(weegfx::Graphics& gfx) override {
             const auto profile = runtime_.isr_profile();
+            draw_load_bar(gfx, profile);
+        }
 
-            gfx.setPrintPos(0, 14);
-            gfx.print("TOT ");
-            print_bucket(gfx, profile.total_cycles);
+        void draw_load_bar(weegfx::Graphics& gfx, const typename RuntimeT::IsrProfile& profile) {
+            const uint32_t total = profile.total_cycles;
+            if (!total) return;
 
-            gfx.setPrintPos(0, 22);
-            gfx.print("APP ");
-            print_bucket(gfx, profile.app_cycles);
+            uint32_t app = profile.app_cycles;
+            uint32_t largest_other = 0;
+            const char* largest_label = "???";
 
-            gfx.setPrintPos(0, 30);
-            gfx.print("DSP ");
-            print_bucket(gfx, profile.display_cycles);
+            if (profile.display_cycles > largest_other) {
+                largest_other = profile.display_cycles;
+                largest_label = "DSP";
+            }
+            if (profile.dac_flush_cycles > largest_other) {
+                largest_other = profile.dac_flush_cycles;
+                largest_label = "DAC";
+            }
+            if (profile.scan_cycles > largest_other) {
+                largest_other = profile.scan_cycles;
+                largest_label = "SCN";
+            }
+            if (profile.marshal_cycles > largest_other) {
+                largest_other = profile.marshal_cycles;
+                largest_label = "MRS";
+            }
+            if (profile.output_cycles > largest_other) {
+                largest_other = profile.output_cycles;
+                largest_label = "OUT";
+            }
 
-            gfx.setPrintPos(0, 38);
-            gfx.print("SCN ");
-            print_bucket(gfx, profile.scan_cycles);
+            const int16_t bar_y = 16;
+            const int16_t bar_height = 12;
+            const int16_t bar_width = 120;
+
+            const int16_t app_width = static_cast<int16_t>((static_cast<uint64_t>(app) * bar_width) / total);
+            const int16_t other_width = static_cast<int16_t>((static_cast<uint64_t>(largest_other) * bar_width) / total);
+
+            gfx.drawFrame(0, bar_y, bar_width, bar_height);
+            for (int16_t x = 0; x < app_width; ++x) {
+                gfx.drawVLine(x, bar_y, bar_height);
+            }
+            if (other_width > 0 && app_width + other_width <= bar_width) {
+                gfx.invertRect(app_width, bar_y, other_width, bar_height);
+            }
+
+            gfx.setPrintPos(0, 36);
+            gfx.print("TOT:");
+            gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(total)));
+            gfx.print("%");
+
+            gfx.setPrintPos(64, 36);
+            gfx.print("APP:");
+            gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(app)));
+            gfx.print("%");
 
             gfx.setPrintPos(0, 46);
-            gfx.print("P");
-            gfx.print(static_cast<int>(active_page_));
-            gfx.print(" ");
-            print_avg_max_us(gfx, page_stats_[active_page_].avg_cycles, page_stats_[active_page_].max_cycles);
+            gfx.print(largest_label);
+            gfx.print(":");
+            gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(largest_other)));
+            gfx.print("%");
         }
 
     private:
-        void print_bucket(weegfx::Graphics& gfx, uint32_t cycles) {
-            gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(cycles)));
-            gfx.print("% ");
-            gfx.print(static_cast<int>(runtime_.cycles_to_us(cycles)));
-            gfx.print("u");
-        }
-
-        void print_avg_max_us(weegfx::Graphics& gfx, uint32_t avg_cycles, uint32_t max_cycles) {
-            gfx.print(static_cast<int>(runtime_.cycles_to_us(avg_cycles)));
-            gfx.print("/");
-            gfx.print(static_cast<int>(runtime_.cycles_to_us(max_cycles)));
-            gfx.print("u");
-        }
-
         RuntimeT& runtime_;
-        const std::array<PageStat, kPageCount>& page_stats_;
         const uint8_t& active_page_;
     };
 
 public:
     explicit TriggerToCV(RuntimeT& runtime)
-        : cpu_page_(runtime, page_stats_, current_page_) {
+        : cpu_page_(runtime, current_page_) {
         pages_ = {
             &encoder_page_,
             &cv_inputs_page_,
