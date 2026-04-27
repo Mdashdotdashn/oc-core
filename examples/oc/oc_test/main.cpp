@@ -6,7 +6,7 @@
 using Runtime = oc::Runtime<platform::HardwarePlatform>;
 
 Runtime runtime;
-TriggerToCV app;
+TriggerToCV<Runtime> app(runtime);
 
 int main() {
     runtime.init(app);

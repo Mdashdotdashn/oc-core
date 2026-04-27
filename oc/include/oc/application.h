@@ -18,6 +18,10 @@ public:
     /// Initialize oscillators, load presets, set defaults, etc.
     virtual void init() {}
 
+    /// Called when an application or sub-application should reset its local state.
+    /// Default implementation does nothing.
+    virtual void reset() {}
+
     /// Called every 100us from the hardware ISR (~10 kHz).
     ///
     /// Read inputs from in, write outputs to out.
