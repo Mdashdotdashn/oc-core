@@ -260,16 +260,14 @@ private:
             gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(total)));
             gfx.print("%");
 
-            gfx.setPrintPos(64, 36);
-            gfx.print("APP:");
-            gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(app)));
-            gfx.print("%");
-
             gfx.setPrintPos(0, 46);
+            gfx.print("APP:");
+            gfx.print(static_cast<int>(runtime_.cycles_to_us(app)));
+            gfx.print("u ");
             gfx.print(largest_label);
             gfx.print(":");
-            gfx.print(static_cast<int>(runtime_.cycles_to_load_percent(largest_other)));
-            gfx.print("%");
+            gfx.print(static_cast<int>(runtime_.cycles_to_us(largest_other)));
+            gfx.print("u");
         }
 
     private:
