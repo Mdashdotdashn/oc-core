@@ -21,7 +21,7 @@ public:
         output_volts_ = {-3, 0, 1, 2};
     }
 
-    void audio_callback(const oc::Inputs& /*in*/, oc::Outputs& out) override {
+    void audio_callback(const oc::Application::Input& /*in*/, oc::Outputs& out) override {
         if (++pattern_tick_counter_ >= kPatternStepTicks) {
             pattern_tick_counter_ = 0;
             pattern_phase_ = static_cast<uint8_t>((pattern_phase_ + 1) & 0x3);

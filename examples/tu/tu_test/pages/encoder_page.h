@@ -4,7 +4,7 @@
 
 #include "pages/page_app.h"
 
-namespace oc_test_pages {
+namespace tu_test_pages {
 
 class EncoderPage final : public PageApp {
 public:
@@ -19,10 +19,10 @@ public:
         right_click_ = false;
     }
 
-    void audio_callback(const oc::Application::Input& /*in*/, oc::Outputs& /*out*/) override {}
+    void audio_callback(const tu::Application::Input& /*in*/, tu::Outputs& /*out*/) override {}
 
-    void ui_callback(const std::array<oc::ButtonState, 2>& buttons,
-                     const std::array<oc::EncoderState, 2>& encoders) override {
+    void ui_callback(const std::array<tu::ButtonState, 2>& /*buttons*/,
+                     const std::array<tu::EncoderState, 2>& encoders) override {
         left_val_ += encoders[0].delta;
         right_val_ += encoders[1].delta;
         left_click_ = encoders[0].click_pressed;
@@ -54,4 +54,4 @@ private:
     bool right_click_ = false;
 };
 
-} // namespace oc_test_pages
+} // namespace tu_test_pages

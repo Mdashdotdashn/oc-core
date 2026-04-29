@@ -17,7 +17,7 @@ public:
         gates_ = {false, false, false, false};
     }
 
-    void audio_callback(const oc::Inputs& in, oc::Outputs& /*out*/) override {
+    void audio_callback(const oc::Application::Input& in, oc::Outputs& /*out*/) override {
         gates_ = in.gate;
     }
 

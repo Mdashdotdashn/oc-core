@@ -143,7 +143,21 @@ private:
     void FASTRUN ui_service() {
         hw_.buttons_impl().scan();
         hw_.encoders_impl().scan();
-        ++ui_scan_generation_;
+
+        // Marshal UI snapshot and notify app.
+        std::array<ButtonState, 2> buttons;
+        for (int i = 0; i < 2; ++i) {
+            const auto b = hw_.buttons_impl().get(i);
+            buttons[i] = {b.pressed, b.just_pressed, b.just_released};
+        }
+
+        std::array<EncoderState, 2> encoders;
+        for (int i = 0; i < 2; ++i) {
+            const auto e = hw_.encoders_impl().get(i);
+            encoders[i] = {e.delta, e.click_pressed, e.click_just_pressed, e.click_just_released};
+        }
+
+        app_->ui_callback(buttons, encoders);
     }
 
     void FASTRUN isr() {
@@ -179,34 +193,18 @@ private:
 
         const core::CoreState& st = core_.get_state();
 
-        // Build Inputs without zero-init: assign arrays directly, no element loop.
-        Inputs in;
-        in.cv       = st.inputs.cv;
-        in.cv_raw   = st.inputs.cv_raw;
-        in.gate     = st.inputs.gate;
-        in.gate_edges = st.inputs.edges;
-
-        // Mask just_pressed/released/delta to zero when no new UI scan is available.
-        // Using a mask avoids branching per field.
-        const uint8_t ui_mask = has_new_ui_scan ? 0xFF : 0x00;
-
-        const auto b0 = hw_.buttons_impl().get(0);
-        in.buttons[0] = { b0.pressed, bool(b0.just_pressed & ui_mask), bool(b0.just_released & ui_mask) };
-        const auto b1 = hw_.buttons_impl().get(1);
-        in.buttons[1] = { b1.pressed, bool(b1.just_pressed & ui_mask), bool(b1.just_released & ui_mask) };
-
-        const auto e0 = hw_.encoders_impl().get(0);
-        in.encoders[0] = { static_cast<int8_t>(e0.delta & ui_mask), e0.click_pressed,
-                           bool(e0.click_just_pressed & ui_mask), bool(e0.click_just_released & ui_mask) };
-        const auto e1 = hw_.encoders_impl().get(1);
-        in.encoders[1] = { static_cast<int8_t>(e1.delta & ui_mask), e1.click_pressed,
-                           bool(e1.click_just_pressed & ui_mask), bool(e1.click_just_released & ui_mask) };
+        // DSP-only input snapshot: no UI mixed in.
+        Application::Input app_in;
+        app_in.cv         = st.inputs.cv;
+        app_in.cv_raw     = st.inputs.cv_raw;
+        app_in.gate       = st.inputs.gate;
+        app_in.gate_edges = st.inputs.edges;
 
         const uint32_t marshal_elapsed_cycles = current_cycle_count() - marshal_start_cycles;
 
         Outputs out{};
         const uint32_t app_start_cycles = current_cycle_count();
-        app_->audio_callback(in, out);
+        app_->audio_callback(app_in, out);
         const uint32_t app_elapsed_cycles = current_cycle_count() - app_start_cycles;
 
         const uint32_t output_start_cycles = current_cycle_count();

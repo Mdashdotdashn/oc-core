@@ -3,9 +3,10 @@
 #include <array>
 #include <cstdint>
 
-#include "oc/app.h"
+#include "tu/app.h"
 #include "platform/drivers/weegfx.h"
 
+#include "pages/button_page.h"
 #include "pages/cpu_page.h"
 #include "pages/cv_inputs_page.h"
 #include "pages/encoder_page.h"
@@ -14,21 +15,16 @@
 #include "pages/trigger_page.h"
 
 template <typename RuntimeT>
-class TriggerToCV : public oc::Application {
+class TuTestApp : public tu::Application {
 private:
-    static constexpr uint8_t kPageCount = 5;
-    static constexpr uint8_t kProfileAverageShift = 4;
-
-    struct PageStat {
-        uint32_t avg_cycles = 0;
-        uint32_t max_cycles = 0;
-    };
+    static constexpr uint8_t kPageCount = 6;
 
 public:
-    explicit TriggerToCV(RuntimeT& runtime)
+    explicit TuTestApp(RuntimeT& runtime)
         : cpu_page_(runtime) {
         pages_ = {
             &encoder_page_,
+            &button_page_,
             &cv_inputs_page_,
             &output_page_,
             &trigger_page_,
@@ -38,17 +34,14 @@ public:
 
     void init() override {
         current_page_ = kPageCount - 1;
-        for (auto& stat : page_stats_) {
-            stat = {};
-        }
         for (auto* page : pages_) {
             page->init();
         }
         pages_[current_page_]->reset();
     }
 
-    void ui_callback(const std::array<oc::ButtonState, 2>& buttons,
-                     const std::array<oc::EncoderState, 2>& encoders) override {
+    void ui_callback(const std::array<tu::ButtonState, 2>& buttons,
+                     const std::array<tu::EncoderState, 2>& encoders) override {
         if (buttons[0].just_pressed) {
             switch_page((current_page_ + kPageCount - 1) % kPageCount);
         }
@@ -58,24 +51,15 @@ public:
         pages_[current_page_]->ui_callback(buttons, encoders);
     }
 
-    void audio_callback(const oc::Application::Input& in, oc::Outputs& out) override {
-        const uint8_t active_page = current_page_;
-        const uint32_t page_start_cycles = current_cycle_count();
-        pages_[active_page]->audio_callback(in, out);
-        const uint32_t page_elapsed_cycles = current_cycle_count() - page_start_cycles;
-
-        auto& page_stat = page_stats_[active_page];
-        update_average(page_stat.avg_cycles, page_elapsed_cycles);
-        if (page_elapsed_cycles > page_stat.max_cycles) {
-            page_stat.max_cycles = page_elapsed_cycles;
-        }
+    void audio_callback(const tu::Application::Input& in, tu::Outputs& out) override {
+        pages_[current_page_]->audio_callback(in, out);
     }
 
     void idle() override {
         pages_[current_page_]->idle();
     }
 
-    void draw(oc::Display* display) override {
+    void draw(tu::Display* display) override {
         if (!display->begin_frame()) {
             return;
         }
@@ -128,28 +112,14 @@ private:
         return len;
     }
 
-    static uint32_t current_cycle_count() {
-#if defined(ARM_DWT_CYCCNT)
-        return ARM_DWT_CYCCNT;
-#else
-        return 0;
-#endif
-    }
-
-    static void update_average(uint32_t& average_cycles, uint32_t sample_cycles) {
-        int32_t avg_cycles = static_cast<int32_t>(average_cycles);
-        avg_cycles += (static_cast<int32_t>(sample_cycles) - avg_cycles) >> kProfileAverageShift;
-        average_cycles = static_cast<uint32_t>(avg_cycles);
-    }
-
     weegfx::Graphics gfx_;
-    oc_test_pages::EncoderPage encoder_page_;
-    oc_test_pages::CVInputsPage cv_inputs_page_;
-    oc_test_pages::OutputPage output_page_;
-    oc_test_pages::TriggerPage trigger_page_;
-    oc_test_pages::CpuPage<RuntimeT> cpu_page_;
-    std::array<oc_test_pages::PageApp*, kPageCount> pages_{};
+    tu_test_pages::EncoderPage encoder_page_;
+    tu_test_pages::ButtonPage button_page_;
+    tu_test_pages::CVInputsPage cv_inputs_page_;
+    tu_test_pages::OutputPage output_page_;
+    tu_test_pages::TriggerPage trigger_page_;
+    tu_test_pages::CpuPage<RuntimeT> cpu_page_;
+    std::array<tu_test_pages::PageApp*, kPageCount> pages_{};
 
-    std::array<PageStat, kPageCount> page_stats_{};
     uint8_t current_page_ = 0;
 };

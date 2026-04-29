@@ -17,20 +17,24 @@ public:
 
     void init() override {}
 
-    void audio_callback(const tu::Inputs& in, tu::Outputs& out) override {
+    void ui_callback(const std::array<tu::ButtonState, 2>& buttons,
+                     const std::array<tu::EncoderState, 2>& encoders) override {
+        if (buttons[0].just_pressed) toggle0_ = !toggle0_;
+        if (buttons[1].just_pressed) toggle1_ = !toggle1_;
+        encoder_delta_ = (encoders[0].delta != 0);
+    }
+
+    void audio_callback(const tu::Application::Input& in, tu::Outputs& out) override {
         // Gate pass-through
         out.gates[0] = in.gate[0];  // TR1 → CLK1
         out.gates[1] = in.gate[1];  // TR2 → CLK2
 
-        // Toggle on button press
-        if (in.buttons[0].just_pressed) toggle0_ = !toggle0_;
+        // Toggle from ui_callback
         out.gates[2] = toggle0_;    // CLK3
-
-        if (in.buttons[1].just_pressed) toggle1_ = !toggle1_;
         out.gates[4] = toggle1_;    // CLK5
 
-        // One-shot on encoder step
-        out.gates[5] = (in.encoders[0].delta != 0);  // CLK6
+        // One-shot from ui_callback
+        out.gates[5] = encoder_delta_;  // CLK6
 
         // CLK4: route CV1 raw (0–4095) straight to the internal DAC
         out.analog = static_cast<uint16_t>(in.cv_raw[0] & 0x0FFF);
@@ -61,4 +65,5 @@ private:
     weegfx::Graphics gfx_;
     bool toggle0_ = false;
     bool toggle1_ = false;
+    bool encoder_delta_ = false;
 };

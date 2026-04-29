@@ -4,7 +4,7 @@
 
 #include "pages/page_app.h"
 
-namespace oc_test_pages {
+namespace tu_test_pages {
 
 template <typename RuntimeT>
 class CpuPage final : public PageApp {
@@ -12,7 +12,7 @@ public:
     explicit CpuPage(RuntimeT& runtime)
         : PageApp("cpu"), runtime_(runtime) {}
 
-    void audio_callback(const oc::Application::Input& /*in*/, oc::Outputs& /*out*/) override {}
+    void audio_callback(const tu::Application::Input& /*in*/, tu::Outputs& /*out*/) override {}
 
     void draw_body(weegfx::Graphics& gfx) override {
         const auto profile = runtime_.isr_profile();
@@ -34,9 +34,9 @@ private:
             largest_other = profile.display_cycles;
             largest_label = "DSP";
         }
-        if (profile.dac_flush_cycles > largest_other) {
-            largest_other = profile.dac_flush_cycles;
-            largest_label = "DAC";
+        if (profile.output_flush_cycles > largest_other) {
+            largest_other = profile.output_flush_cycles;
+            largest_label = "FLH";
         }
         if (profile.scan_cycles > largest_other) {
             largest_other = profile.scan_cycles;
@@ -84,4 +84,4 @@ private:
     RuntimeT& runtime_;
 };
 
-} // namespace oc_test_pages
+} // namespace tu_test_pages

@@ -6,7 +6,7 @@
 #include "pages/page_app.h"
 #include "pages/page_ui_utils.h"
 
-namespace oc_test_pages {
+namespace tu_test_pages {
 
 class CVInputsPage final : public PageApp {
 public:
@@ -18,7 +18,7 @@ public:
         cv_ = {0, 0, 0, 0};
     }
 
-    void audio_callback(const oc::Application::Input& in, oc::Outputs& /*out*/) override {
+    void audio_callback(const tu::Application::Input& in, tu::Outputs& /*out*/) override {
         cv_ = in.cv;
     }
 
@@ -41,4 +41,4 @@ private:
     std::array<int32_t, 4> cv_ = {0, 0, 0, 0};
 };
 
-} // namespace oc_test_pages
+} // namespace tu_test_pages
