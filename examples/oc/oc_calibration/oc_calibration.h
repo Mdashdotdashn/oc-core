@@ -4,7 +4,7 @@
 #include "oc/calibration.h"
 #include "platform/drivers/weegfx.h"
 
-enum class CalWizardPhase { kDac, kAdc };
+enum class CalWizardPhase { kDac, kAdc, kDisplay };
 
 template <typename RuntimeT>
 class CalibrationApp : public oc::Application {
@@ -12,15 +12,19 @@ public:
     explicit CalibrationApp(RuntimeT& runtime) : runtime_(runtime) {}
 
     void init() override {
-        phase_ = CalWizardPhase::kDac;
+        phase_ = CalWizardPhase::kDisplay;
+        display_offset_ = oc::calibration::data().display_offset;
+        runtime_.hardware().display_impl().set_offset(display_offset_);
         load_dac_point();
     }
 
     void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
         if (phase_ == CalWizardPhase::kDac) {
             handle_dac(in);
-        } else {
+        } else if (phase_ == CalWizardPhase::kAdc) {
             handle_adc(in);
+        } else {
+            handle_display(in);
         }
 
         if (save_flash_ > 0) {
@@ -35,11 +39,15 @@ public:
                 out.cv[i] = oc::calibration::volts_to_dac(i, 0.0f);
             }
             out.cv[dac_channel_] = oc::calibration::dac_value_at(dac_channel_, dac_point_);
-        } else {
+        } else if (phase_ == CalWizardPhase::kAdc) {
             const float calibration_voltage =
                 static_cast<float>(oc::calibration::kAdcCalibrationVoltages[adc_point_]);
             for (int i = 0; i < 4; ++i) {
                 out.cv[i] = oc::calibration::volts_to_dac(i, calibration_voltage);
+            }
+        } else {
+            for (int i = 0; i < 4; ++i) {
+                out.cv[i] = oc::calibration::volts_to_dac(i, 0.0f);
             }
         }
     }
@@ -53,8 +61,10 @@ public:
 
         if (phase_ == CalWizardPhase::kDac) {
             draw_dac();
-        } else {
+        } else if (phase_ == CalWizardPhase::kAdc) {
             draw_adc();
+        } else {
+            draw_display();
         }
 
         gfx_.End();
@@ -183,6 +193,63 @@ private:
         gfx_.print("LC:DAC<");
     }
 
+    void handle_display(const oc::Inputs& in) {
+        if (in.encoders[0].delta != 0) {
+            const int value = clamp(
+                static_cast<int>(display_offset_) + in.encoders[0].delta,
+                0,
+                15);
+            display_offset_ = static_cast<uint8_t>(value);
+            runtime_.hardware().display_impl().set_offset(display_offset_);
+        }
+        if (in.buttons[0].just_pressed) {
+            const int value = clamp(static_cast<int>(display_offset_) - 1, 0, 15);
+            display_offset_ = static_cast<uint8_t>(value);
+            runtime_.hardware().display_impl().set_offset(display_offset_);
+        }
+        if (in.buttons[1].just_pressed) {
+            const int value = clamp(static_cast<int>(display_offset_) + 1, 0, 15);
+            display_offset_ = static_cast<uint8_t>(value);
+            runtime_.hardware().display_impl().set_offset(display_offset_);
+        }
+        if (in.encoders[0].click_just_pressed) {
+            phase_ = CalWizardPhase::kDac;
+            load_dac_point();
+            return;
+        }
+        if (in.encoders[1].click_just_pressed) {
+            oc::calibration::mutable_data().display_offset = display_offset_;
+            save_calibration();
+            phase_ = CalWizardPhase::kDac;
+            load_dac_point();
+        }
+    }
+
+    void draw_display() {
+        gfx_.setPrintPos(8, 0);
+        gfx_.print("Display");
+        // Header bar in reverse, plus one title-height strip with black edge/center marks.
+        gfx_.invertRect(0, 0, 128, 8);
+        draw_save_status(66);
+        gfx_.drawRect(0, 8, 128, 8);
+        gfx_.clearRect(0, 8, 2, 8);
+        gfx_.clearRect(63, 8, 2, 8);
+        gfx_.clearRect(126, 8, 2, 8);
+
+        gfx_.setPrintPos(0, 22);
+        gfx_.print("off:");
+        gfx_.print(static_cast<int>(display_offset_));
+
+        gfx_.setPrintPos(0, 33);
+        gfx_.print("L:+/- UP/DN:+/-1");
+
+        gfx_.setPrintPos(0, 44);
+        gfx_.print("RC:save>Dac");
+
+        gfx_.setPrintPos(0, 55);
+        gfx_.print("LC:DAC>");
+    }
+
     void draw_save_status(uint8_t x) {
         if (save_flash_ > 0) {
             gfx_.setPrintPos(x, 0);
@@ -211,6 +278,7 @@ private:
 
     void load_dac_point() {
         dac_working_value_ = oc::calibration::dac_value_at(dac_channel_, dac_point_);
+        display_offset_ = oc::calibration::data().display_offset;
     }
 
     void print_voltage(int volts) {
@@ -249,6 +317,7 @@ private:
     uint8_t adc_channel_ = 0;
     uint8_t adc_point_ = 0;
     uint16_t last_captured_ = 0;
+    uint8_t display_offset_ = 2;
     uint8_t capture_flash_ = 0;
 
     bool saved_ok_ = false;

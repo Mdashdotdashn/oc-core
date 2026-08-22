@@ -107,8 +107,8 @@ private:
     }
 
     void draw_footer() {
-        static constexpr char kPrevLabel[] = " < ";
-        static constexpr char kNextLabel[] = " > ";
+        static constexpr char kPrevLabel[] = "< dn";
+        static constexpr char kNextLabel[] = "up >";
         constexpr int16_t kLabelWidth = static_cast<int16_t>((sizeof(kPrevLabel) - 1) * weegfx::Graphics::kFixedFontW);
         constexpr int16_t next_x = 128 - kLabelWidth;
 
