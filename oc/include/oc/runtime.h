@@ -113,6 +113,18 @@ public:
         }
     }
 
+    uint32_t core_interval_us() const {
+        return core_interval_us_;
+    }
+
+    float sample_rate() const {
+        return core_interval_us_ > 0U ? (1000000.0f / static_cast<float>(core_interval_us_)) : 0.0f;
+    }
+
+    uint32_t sample_rate_hz() const {
+        return core_interval_us_ > 0U ? (1000000U / core_interval_us_) : 0U;
+    }
+
     void stop() {
         hw_.timer_impl().stop();
         hw_.timer_impl().stop_ui();
