@@ -40,11 +40,11 @@ public:
         gpio_->scan();
 
         for (int i = 0; i < 4; ++i) {
-            const uint32_t smoothed    = adc_->get_smoothed(i);
-            state_.inputs.cv_raw[i]    = smoothed;
+            const uint32_t raw         = adc_->read_raw(i);
+            state_.inputs.cv_raw[i]    = raw;
             state_.inputs.cv[i]        =
                 static_cast<int32_t>(calibration::data().adc_offset[i])
-                - static_cast<int32_t>(smoothed);
+                - static_cast<int32_t>(raw);
         }
         for (int i = 0; i < 2; ++i) {
             state_.inputs.gate[i] = gpio_->read_input(i);

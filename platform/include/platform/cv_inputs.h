@@ -5,7 +5,7 @@
 #include <ADC.h>
 
 /// Teensy ADC implementation.
-/// Round-robin channel scanning with exponential smoothing.
+/// Round-robin channel scanning with direct raw-sample capture.
 ///
 /// Traits must provide:
 ///   static constexpr int     kCount;
@@ -23,8 +23,6 @@ class CVInputs final {
 public:
     CVInputs() {
         raw_.fill(0);
-        smoothed_accumulator_.fill(0);
-        smoothed_value_.fill(0);
         calibrated_.fill(0);
         for (auto& channel_points : points_) {
             channel_points.fill(2048);
@@ -43,21 +41,19 @@ public:
         if (adc_.adc0->isComplete()) {
             const uint32_t raw = static_cast<uint32_t>(adc_.readSingle(ADC_0));
             raw_[current_channel_] = raw;
-            smoothed_accumulator_[current_channel_] =
-                smoothed_accumulator_[current_channel_] -
-                (smoothed_accumulator_[current_channel_] >> kSmoothing) +
-                raw;
-            const uint32_t smoothed = smoothed_accumulator_[current_channel_] >> kSmoothing;
-            smoothed_value_[current_channel_] = smoothed;
-            calibrated_[current_channel_] = interpolate_mv(current_channel_, smoothed);
+            calibrated_[current_channel_] = interpolate_mv(current_channel_, raw);
         }
         current_channel_ = (current_channel_ + 1) % Traits::kCount;
         adc_.startSingleRead(Traits::kPins[current_channel_], ADC_0);
     }
 
     uint32_t read_raw(uint8_t ch)     const { return raw_[ch]; }
-    uint32_t get_smoothed(uint8_t ch) const { return smoothed_value_[ch]; }
+    uint32_t get_smoothed(uint8_t ch) const { return raw_[ch]; }
     int32_t get_calibrated(uint8_t ch) const { return calibrated_[ch]; }
+
+    float rawAdcV(uint8_t ch) const {
+        return static_cast<float>(interpolate_mv(ch, raw_[ch])) / 1000.0f;
+    }
 
     void set_calibration_points(uint8_t channel, const uint16_t* points, size_t count) {
         if (channel >= Traits::kCount) {
@@ -68,12 +64,10 @@ public:
         for (size_t i = 0; i < point_count; ++i) {
             points_[channel][i] = points[i];
         }
-        calibrated_[channel] = interpolate_mv(channel, smoothed_value_[channel]);
+        calibrated_[channel] = interpolate_mv(channel, raw_[channel]);
     }
 
 private:
-    static constexpr int kSmoothing = 4;  ///< Exponential moving average factor (2^N)
-
     int32_t interpolate_mv(uint8_t channel, uint32_t raw) const {
         const auto& points = points_[channel];
 
@@ -132,8 +126,6 @@ private:
     ::ADC   adc_;
     uint8_t current_channel_ = 0;
     std::array<uint32_t, Traits::kCount> raw_{};
-    std::array<uint32_t, Traits::kCount> smoothed_accumulator_{};
-    std::array<uint32_t, Traits::kCount> smoothed_value_{};
     std::array<int32_t, Traits::kCount> calibrated_{};
     std::array<std::array<uint16_t, kCalibrationPointCount>, Traits::kCount> points_{};
 };

@@ -34,8 +34,8 @@ public:
         gpio_->scan();
 
         for (int i = 0; i < 4; ++i) {
-            const uint32_t smoothed = adc_->get_smoothed(i);
-            state_.inputs.cv_raw[i] = smoothed;
+            const uint32_t raw = adc_->read_raw(i);
+            state_.inputs.cv_raw[i] = raw;
             state_.inputs.cv[i] = adc_->get_calibrated(i);
             state_.inputs.gate[i] = gpio_->read_input(i);
         }
