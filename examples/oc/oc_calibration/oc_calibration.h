@@ -19,15 +19,25 @@ public:
         reset_adc_auto();
     }
 
-    void audio_callback(const oc::Inputs& in, oc::Outputs& out) override {
-        handle_page_navigation(in);
-
+    void ui_callback(const std::array<oc::ButtonState, 2>& buttons,
+                     const std::array<oc::EncoderState, 2>& encoders) override {
+        handle_page_navigation(buttons);
         if (phase_ == CalWizardPhase::kDac) {
-            handle_dac(in);
+            handle_dac(encoders);
+        } else if (phase_ == CalWizardPhase::kAdc) {
+            // ADC calibration auto-sequence runs in the audio ISR.
+        } else {
+            handle_display(encoders);
+        }
+    }
+
+    void audio_callback(const oc::Application::Input& in, oc::Outputs& out) override {
+        if (phase_ == CalWizardPhase::kDac) {
+            // DAC phase is driven by UI encoder updates.
         } else if (phase_ == CalWizardPhase::kAdc) {
             handle_adc(in);
         } else {
-            handle_display(in);
+            // Display phase is driven by UI encoder updates.
         }
 
         if (save_flash_ > 0) {
@@ -79,14 +89,14 @@ private:
         kAwaitUnplug,
     };
 
-    void handle_page_navigation(const oc::Inputs& in) {
-        if (in.buttons[0].just_pressed) {
+    void handle_page_navigation(const std::array<oc::ButtonState, 2>& buttons) {
+        if (buttons[0].just_pressed) {
             save_calibration();
             switch_phase(previous_phase(phase_));
             return;
         }
 
-        if (in.buttons[1].just_pressed) {
+        if (buttons[1].just_pressed) {
             save_calibration();
             switch_phase(next_phase(phase_));
         }
@@ -122,24 +132,24 @@ private:
         }
     }
 
-    void handle_dac(const oc::Inputs& in) {
-        if (in.encoders[0].click_just_pressed) {
+    void handle_dac(const std::array<oc::EncoderState, 2>& encoders) {
+        if (encoders[0].click_just_pressed) {
             dac_channel_ = (dac_channel_ + 3) & 0x3;
             load_dac_point();
         }
-        if (in.encoders[1].click_just_pressed) {
+        if (encoders[1].click_just_pressed) {
             dac_channel_ = (dac_channel_ + 1) & 0x3;
             load_dac_point();
         }
-        if (in.encoders[0].delta != 0) {
+        if (encoders[0].delta != 0) {
             dac_point_ = clamp(
-                dac_point_ + in.encoders[0].delta,
+                dac_point_ + encoders[0].delta,
                 0,
                 static_cast<int>(oc::calibration::kDacVoltagePointCount) - 1);
             load_dac_point();
         }
-        if (in.encoders[1].delta != 0) {
-            const int value = clamp(static_cast<int>(dac_working_value_) + in.encoders[1].delta, 0, 65535);
+        if (encoders[1].delta != 0) {
+            const int value = clamp(static_cast<int>(dac_working_value_) + encoders[1].delta, 0, 65535);
             dac_working_value_ = static_cast<uint16_t>(value);
             oc::calibration::mutable_data().dac.calibrated_octaves[dac_channel_][dac_point_] = dac_working_value_;
         }
@@ -167,7 +177,7 @@ private:
         gfx_.print("LC/RC:CH");
     }
 
-    void handle_adc(const oc::Inputs& in) {
+    void handle_adc(const oc::Application::Input& in) {
         if (++adc_update_div_ < kAdcUpdateDivider) {
             return;
         }
@@ -182,7 +192,7 @@ private:
         }
     }
 
-    void update_adc_standby(const oc::Inputs& in) {
+    void update_adc_standby(const oc::Application::Input& in) {
         const uint8_t channel = adc_probe_channel_;
         adc_probe_sum_ += in.cv_raw[channel];
         ++adc_probe_count_;
@@ -226,7 +236,7 @@ private:
         adc_probe_channel_ = static_cast<uint8_t>((adc_probe_channel_ + 1) & 0x3);
     }
 
-    void update_adc_settling(const oc::Inputs& in) {
+    void update_adc_settling(const oc::Application::Input& in) {
         const uint16_t sample = static_cast<uint16_t>(in.cv_raw[adc_active_channel_]);
         if (sample < adc_window_min_) adc_window_min_ = sample;
         if (sample > adc_window_max_) adc_window_max_ = sample;
@@ -270,7 +280,7 @@ private:
         }
     }
 
-    void update_adc_unplug(const oc::Inputs& in) {
+    void update_adc_unplug(const oc::Application::Input& in) {
         adc_unplug_sum_ += in.cv_raw[adc_active_channel_];
         ++adc_unplug_count_;
 
@@ -434,10 +444,10 @@ private:
         gfx_.print("Remove cable");
     }
 
-    void handle_display(const oc::Inputs& in) {
-        if (in.encoders[0].delta != 0) {
+    void handle_display(const std::array<oc::EncoderState, 2>& encoders) {
+        if (encoders[0].delta != 0) {
             const int value = clamp(
-                static_cast<int>(display_offset_) + in.encoders[0].delta,
+                static_cast<int>(display_offset_) + encoders[0].delta,
                 0,
                 15);
             display_offset_ = static_cast<uint8_t>(value);

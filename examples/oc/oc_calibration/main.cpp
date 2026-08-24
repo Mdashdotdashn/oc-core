@@ -10,6 +10,7 @@ CalibrationApp<Runtime> app(runtime);
 
 int main() {
     runtime.init(app, 100);
+    runtime.start();
 
     while (true) {
         runtime.poll();
