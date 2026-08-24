@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 
 #include "oc/button_state.h"
@@ -22,7 +24,8 @@ public:
     /// Non-UI input snapshot: CV, gate, and edges only.
     /// Passed to audio_callback every ~100us from ISR.
     struct Input {
-        std::array<int32_t, 4> cv;        ///< Calibrated CV values
+        std::array<float, 4> cv;          ///< Calibrated CV values in volts
+        std::array<int32_t, 4> cv_mv;     ///< Calibrated CV values in millivolts
         std::array<uint32_t, 4> cv_raw;   ///< Raw 12-bit ADC values
         std::array<bool, 4> gate;         ///< Gate input levels
         uint32_t gate_edges;              ///< Rising-edge bitmask

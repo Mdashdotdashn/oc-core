@@ -207,9 +207,12 @@ private:
 
         // DSP-only input snapshot: no UI mixed in.
         Application::Input app_in;
-        app_in.cv         = st.inputs.cv;
-        app_in.cv_raw     = st.inputs.cv_raw;
-        app_in.gate       = st.inputs.gate;
+        for (int i = 0; i < 4; ++i) {
+            app_in.cv_mv[i] = st.inputs.cv[i];
+            app_in.cv[i] = static_cast<float>(st.inputs.cv[i]) / 1000.0f;
+            app_in.cv_raw[i] = st.inputs.cv_raw[i];
+            app_in.gate[i] = st.inputs.gate[i];
+        }
         app_in.gate_edges = st.inputs.edges;
 
         const uint32_t marshal_elapsed_cycles = current_cycle_count() - marshal_start_cycles;

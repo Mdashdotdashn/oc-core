@@ -19,7 +19,7 @@ public:
     }
 
     void audio_callback(const oc::Application::Input& in, oc::Outputs& /*out*/) override {
-        cv_ = in.cv;
+        cv_ = in.cv_mv;
     }
 
     void draw_body(weegfx::Graphics& gfx) override {

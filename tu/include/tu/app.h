@@ -25,7 +25,8 @@ public:
     /// Non-UI input snapshot: CV, gate, and edges only.
     /// Passed to audio_callback every ~100µs from ISR.
     struct Input {
-        std::array<int32_t,  4> cv;        ///< Calibrated CV values
+        std::array<float,    4> cv;        ///< Calibrated CV values in volts
+        std::array<int32_t,  4> cv_mv;     ///< Calibrated CV values in millivolts
         std::array<uint32_t, 4> cv_raw;    ///< Raw 12-bit ADC values
         std::array<bool,     2> gate;      ///< Gate input levels (TR1, TR2)
         uint32_t                gate_edges; ///< Rising-edge bitmask
