@@ -9,8 +9,8 @@ Runtime runtime;
 TriggerToCV<Runtime> app(runtime);
 
 int main() {
-    runtime.init(app);
-    runtime.start(100);
+    runtime.init(app, 100);
+    runtime.start();
 
     while (true) {
         runtime.poll();

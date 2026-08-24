@@ -10,8 +10,8 @@ Runtime runtime;
 ClockTest<Runtime> app(runtime);
 
 int main() {
-    runtime.init(app);
-    runtime.start(60);  // 60µs = ~16.6 kHz (T_U standard)
+    runtime.init(app, 60);  // 60us = ~16.6 kHz (T_U standard)
+    runtime.start();
 
     while (true) {
         runtime.poll();

@@ -99,15 +99,15 @@ public:
         app_->init();
     }
 
-    void init(Application& app) {
+    void init(Application& app, uint32_t interval_us) {
         init_hardware();
+        core_interval_us_ = interval_us;
         begin(app);
     }
 
-    void start(uint32_t interval_us) {
-        core_interval_us_ = interval_us;
+    void start() {
         reset_profiling();
-        hw_.timer_impl().start(interval_us, isr_trampoline);
+        hw_.timer_impl().start(core_interval_us_, isr_trampoline);
         if (ui_interval_us_ > 0) {
             hw_.timer_impl().start_ui(ui_interval_us_, ui_trampoline);
         }

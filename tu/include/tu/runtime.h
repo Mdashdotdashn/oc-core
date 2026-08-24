@@ -61,9 +61,10 @@ public:
     }
 
     /// Initialise hardware, load calibration, prepare PeriodicCore.
-    void init(Application& app) {
+    void init(Application& app, uint32_t interval_us) {
         app_ = &app;
         active_instance_ = this;
+        core_interval_us_ = interval_us;
 
         if (timing_pin_ != kNoTimingPin) {
             pinMode(timing_pin_, OUTPUT);
@@ -75,6 +76,7 @@ public:
         hw_.init_all();
         calibration::initialize(hw_);
         core_.init(&hw_.adc_impl(), &hw_.gpio_impl());
+        begin(app);
     }
 
     /// Bind application and call its init(). Must be called after init().
@@ -83,10 +85,9 @@ public:
         app_->init();
     }
 
-    void start(uint32_t interval_us) {
-        core_interval_us_ = interval_us;
+    void start() {
         reset_profiling();
-        hw_.timer_impl().start(interval_us, isr_trampoline);
+        hw_.timer_impl().start(core_interval_us_, isr_trampoline);
         if (ui_interval_us_ > 0) {
             hw_.timer_impl().start_ui(ui_interval_us_, ui_trampoline);
         }
